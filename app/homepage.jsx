@@ -120,14 +120,14 @@ const styles = StyleSheet.create({
   botaoMetas: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E6F2F5",
+    backgroundColor: "#ffffffff",
     padding: 16,
     borderRadius: 12,
     width: "85%",
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.5,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 8,
     marginBottom: 16,
   },
   icone: {
