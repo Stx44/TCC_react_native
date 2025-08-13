@@ -1,6 +1,9 @@
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   ImageBackground,
   SafeAreaView,
@@ -12,39 +15,78 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
+const API_BASE_URL = "https://apineon-production.up.railway.app";
+
+async function login(email, senha) {
+  const emailLimpo = email.trim().toLowerCase();
+  const senhaLimpa = senha.trim();
+
+  if (!emailLimpo || !senhaLimpa) {
+    throw new Error("Preencha todos os campos.");
+  }
+
+  if (!emailLimpo.includes("@") || !emailLimpo.includes(".")) {
+    throw new Error("Email inválido.");
+  }
+
+  const response = await axios.post(`${API_BASE_URL}/login`, {
+    email: emailLimpo,
+    senha: senhaLimpa,
+  });
+
+  return response.data;
+}
+
 export default function Login() {
   const [oculto, setOculto] = useState(true);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const dados = await login(email, senha);
+      Alert.alert("Sucesso", "Usuário logado com sucesso!");
+      setEmail("");
+      setSenha("");
+      // Navegue para a tela principal, por exemplo:
+      router.replace("/homepage");
+    } catch (error) {
+      Alert.alert("Erro", error.message || "Erro ao fazer login.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ImageBackground
-      source={require("../assets/images/fundo.png")}
+      source={require("../assets/images/paredebranca.png")}
       style={styles.background}
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.topo}>
           <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons name="arrow-back" size={24} color="#005067" />
             <Text style={styles.txtVoltar}>Voltar</Text>
           </TouchableOpacity>
 
           <Image
-            source={require("../assets/images/logobranca.png")}
+            source={require("../assets/images/logo.png")}
             style={styles.logoSuperior}
           />
         </View>
 
         <View style={styles.content}>
           <Image
-            source={require("../assets/images/logo_health_white.png")}
+            source={require("../assets/images/logo_health.png")}
             style={styles.logoCentral}
           />
 
           <TextInput
             placeholder="Email"
-            placeholderTextColor="white"
+            placeholderTextColor="#005067"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -54,7 +96,7 @@ export default function Login() {
 
           <TextInput
             placeholder="Senha"
-            placeholderTextColor="white"
+            placeholderTextColor="#005067"
             value={senha}
             onChangeText={setSenha}
             autoCapitalize="none"
@@ -62,12 +104,12 @@ export default function Login() {
             style={styles.inputNative}
           />
 
-          <TouchableOpacity style={styles.botao}>
-            <Text style={styles.textBotao}>Entrar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.esqueceuSenha}>
-            <Text style={styles.Esqueceutxt}>Esqueceu a senha?</Text>
+          <TouchableOpacity style={styles.botao} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#005067" />
+            ) : (
+              <Text style={styles.textBotao}>Entrar</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -95,9 +137,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   txtVoltar: {
-    marginLeft: "2%",
+    marginLeft: 6,
     fontSize: 18,
-    color: "white",
+    color: "#005067",
     fontWeight: "bold",
   },
   logoSuperior: {
@@ -107,7 +149,6 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    
   },
   logoCentral: {
     width: 290,
@@ -124,11 +165,11 @@ const styles = StyleSheet.create({
     height: "06%",
     marginBottom: "3%",
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: "#005067",
     borderRadius: 25,
-    paddingHorizontal: "5%",
-    paddingVertical: "3%",
-    color: "white",
+    paddingHorizontal: "4%",
+    paddingVertical: "2%",
+    color: "#005067",
     backgroundColor: "transparent",
   },
   botao: {
@@ -139,25 +180,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: "#ffffff",
+    borderColor: "#005067",
     marginTop: "3%",
   },
   textBotao: {
-    color: "white",
+    color: "#005067",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  esqueceuSenha: {
-    marginTop: "5%",
-    marginRight: "20%",
-    alignContent: "flex-end",
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    width: "100%",
-  },
-  Esqueceutxt: {
-    color: "white",
-    fontSize: 16,
-    textDecorationLine: "underline",
   },
 });

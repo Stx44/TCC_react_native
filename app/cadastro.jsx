@@ -1,6 +1,9 @@
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   ImageBackground,
   SafeAreaView,
@@ -12,12 +15,53 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
+const API_BASE_URL = "https://apineon-production.up.railway.app";
+
+async function cadastrar(nome, email, senha) {
+  const nomeLimpo = nome.trim();
+  const emailLimpo = email.trim().toLowerCase();
+  const senhaLimpa = senha.trim();
+
+  if (!nomeLimpo || !emailLimpo || !senhaLimpa) {
+    throw new Error("Preencha todos os campos.");
+  }
+
+  if (!emailLimpo.includes("@") || !emailLimpo.includes(".")) {
+    throw new Error("Email inválido.");
+  }
+
+  const response = await axios.post(`${API_BASE_URL}/usuarios`, {
+    nome: nomeLimpo,
+    email: emailLimpo,
+    senha: senhaLimpa,
+  });
+
+  return response.data;
+}
+
 export default function Login() {
   const [oculto, setOculto] = useState(true);
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [confSenha, setConfSenha] = useState("")
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
+
+  const handleCadastro = async () => {
+    setLoading(true);
+    try {
+      const dados = await cadastrar(nome, email, senha);
+      setNome("");
+      setEmail("");
+      setSenha("");
+      router.push("/login");
+    } catch (error) {
+      Alert.alert("Erro", error.message || "Erro ao cadastrar.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ImageBackground
@@ -44,6 +88,15 @@ export default function Login() {
           />
 
           <TextInput
+            placeholder="Nome"
+            placeholderTextColor="#005067"
+            value={nome}
+            onChangeText={setNome}
+            autoCapitalize="words"
+            style={styles.inputNative}
+          />
+
+          <TextInput
             placeholder="Email"
             placeholderTextColor="#005067"
             value={email}
@@ -63,18 +116,12 @@ export default function Login() {
             style={styles.inputNative}
           />
 
-          <TextInput
-            placeholder="Confirmar Senha"
-            placeholderTextColor="#005067"
-            value={confSenha}
-            onChangeText={setConfSenha}
-            autoCapitalize="none"
-            secureTextEntry={oculto}
-            style={styles.inputNative}
-          />
-
-          <TouchableOpacity style={styles.botao}>
-            <Text style={styles.textBotao}>Entrar</Text>
+          <TouchableOpacity style={styles.botao} onPress={handleCadastro} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#005067" />
+            ) : (
+              <Text style={styles.textBotao}>Cadastrar</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -114,7 +161,6 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    
   },
   logoCentral: {
     width: 290,
@@ -152,6 +198,6 @@ const styles = StyleSheet.create({
   textBotao: {
     color: "#005067",
     fontSize: 16,
-    fontWeight: "#005067",
+    fontWeight: "bold",
   },
 });
