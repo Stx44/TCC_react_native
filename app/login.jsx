@@ -51,7 +51,6 @@ export default function Login() {
       Alert.alert("Sucesso", "Usuário logado com sucesso!");
       setEmail("");
       setSenha("");
-      // Navegue para a tela principal, por exemplo:
       router.replace("/homepage");
     } catch (error) {
       Alert.alert("Erro", error.message || "Erro ao fazer login.");

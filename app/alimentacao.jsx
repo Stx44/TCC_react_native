@@ -1,15 +1,18 @@
-import { router } from "expo-router";
+import { useState } from "react";
 import {
-  Image,
-  ImageBackground,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Image,
+    ImageBackground,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
+import { Calendar } from "react-native-calendars";
 
 export default function HomePage() {
+  const [selectedDate, setSelectedDate] = useState("");
+
   return (
     <ImageBackground
       source={require("../assets/images/paredebranca.png")}
@@ -30,34 +33,52 @@ export default function HomePage() {
           </TouchableOpacity>
         </View>
 
-        {/* BOTÕES METAS E PROGRESSO */}
+        {/* BOTÕES E CALENDÁRIO */}
         <View style={styles.areaBotao}>
-          <TouchableOpacity style={styles.botaoMetas}>
-            <Image
-              source={require("../assets/images/target.png")}
-              style={styles.icone}
-            />
+          <TouchableOpacity style={styles.botaoCalendario}>
             <View style={styles.textos}>
-              <Text style={styles.titulo}>Metas Semanais</Text>
-              <Text style={styles.descricao}>Acompanhe suas metas dessa semana</Text>
+              <Text style={styles.titulo}>Cadastrar Alimentação da semana</Text>
+              <Text style={styles.descricao}>
+                Gerencie sua dieta com nosso calendário
+              </Text>
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.botaoMetas}>
-            <Image
-              source={require("../assets/images/progresso.png")}
-              style={styles.icone}
-            />
-            <View style={styles.textos}>
-              <Text style={styles.titulo}>Acompanhar Progresso</Text>
-              <Text style={styles.descricao}>Acompanhe seus progressos de forma contínua</Text>
-            </View>
-          </TouchableOpacity>
+          {/* CALENDÁRIO */}
+          <Calendar
+            current={new Date().toISOString().split("T")[0]}
+            minDate={new Date().toISOString().split("T")[0]} // Bloqueia datas passadas
+            maxDate={"2025-08-17"} // Exemplo de limite (4 dias no futuro)
+            onDayPress={(day) => {
+              setSelectedDate(day.dateString);
+              console.log("Data selecionada:", day.dateString);
+            }}
+            markedDates={{
+              [selectedDate]: {
+                selected: true,
+                selectedColor: "#005067",
+                selectedTextColor: "#fff",
+              },
+            }}
+            theme={{
+              selectedDayBackgroundColor: "#005067",
+              todayTextColor: "#00adf5",
+              arrowColor: "#005067",
+              calendarBackground: "white",
+              borderRadius: 10,
+            }}
+            style={{
+                 borderRadius: 10,
+                 width: "90%",
+                 borderWidth: 2,
+                 borderColor: "#005067",
+            }}
+          />
         </View>
 
         {/* TAB BAR */}
         <View style={styles.tabBar}>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
+          <TouchableOpacity style={styles.tabItem}>
             <Image
               source={require("../assets/images/apple_teal.png")}
               style={styles.tabIcon}
@@ -104,7 +125,6 @@ const styles = StyleSheet.create({
   },
   logoSuperior: {
     width: "12%",
-    height: undefined,
     aspectRatio: 1,
     resizeMode: "contain",
   },
@@ -117,11 +137,13 @@ const styles = StyleSheet.create({
   areaBotao: {
     alignItems: "center",
     marginBottom: "2%",
+    gap: 20
   },
-  botaoMetas: {
+  botaoCalendario: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffffff",
+    justifyContent: "center",
+    backgroundColor: "#005067",
     padding: 16,
     borderRadius: 12,
     width: "85%",
@@ -129,25 +151,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 8,
-    marginBottom: 16,
-  },
-  icone: {
-    width: 40,
-    height: 40,
-    marginRight: 12,
-    resizeMode: "contain",
   },
   textos: {
     flex: 1,
+    alignItems: "center",
   },
   titulo: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#005067",
+    color: "#fff",
   },
   descricao: {
     fontSize: 14,
-    color: "#333",
+    color: "#fff",
   },
   tabBar: {
     position: "absolute",
