@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
     Image,
@@ -6,9 +7,10 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
+
 
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState("");
@@ -34,16 +36,11 @@ export default function HomePage() {
         </View>
 
         {/* BOTÕES E CALENDÁRIO */}
-        <View style={styles.areaBotao}>
-          <TouchableOpacity style={styles.botaoCalendario}>
-            <View style={styles.textos}>
-              <Text style={styles.titulo}>Cadastrar Alimentação da semana</Text>
-              <Text style={styles.descricao}>
-                Gerencie sua dieta com nosso calendário
-              </Text>
-            </View>
-          </TouchableOpacity>
-
+        <View style={styles.areaCalendario}>
+            <View style={styles.areaTexto}>
+                <Text style={styles.textoTitulo}>Calendário</Text>
+            </View>  
+            
           {/* CALENDÁRIO */}
           <Calendar
             current={new Date().toISOString().split("T")[0]}
@@ -64,27 +61,36 @@ export default function HomePage() {
               selectedDayBackgroundColor: "#005067",
               todayTextColor: "#00adf5",
               arrowColor: "#005067",
-              calendarBackground: "white",
+              calendarBackground: "transparent",
               borderRadius: 10,
             }}
             style={{
                  borderRadius: 10,
-                 width: "90%",
+                 width: "95%",
                  borderWidth: 2,
                  borderColor: "#005067",
             }}
           />
         </View>
 
+        <View style={styles.areaBotao}>
+            <TouchableOpacity style={styles.botaoCalendario} onPress={() => router.push("/aliSemanal")}>
+            <View style={styles.textos}>
+              <Text style={styles.titulo}>Checar alimentação semanal</Text>
+              <Text style={styles.descricao}>Gerencie sua dieta com nosso calendário!</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* TAB BAR */}
         <View style={styles.tabBar}>
-          <TouchableOpacity style={styles.tabItem}>
+          <TouchableOpacity style={styles.tabItem} >
             <Image
               source={require("../assets/images/apple_teal.png")}
               style={styles.tabIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem}>
+          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
             <Image
               source={require("../assets/images/home_teal.png")}
               style={styles.tabIcon}
@@ -135,9 +141,9 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   areaBotao: {
+    height: "20%",
     alignItems: "center",
     marginBottom: "2%",
-    gap: 20
   },
   botaoCalendario: {
     flexDirection: "row",
@@ -151,6 +157,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 8,
+    marginLeft: "7%",
+    marginRight: "7%",
+    marginTop: "5%",
   },
   textos: {
     flex: 1,
@@ -188,4 +197,22 @@ const styles = StyleSheet.create({
     height: 32,
     resizeMode: "contain",
   },
+  areaCalendario: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: "20%",
+    backgroundColor: "transparent",
+  },
+  areaTexto: {
+    marginBottom: 20,
+    alignItems: "center",
+    width: "50%",
+  },
+    textoTitulo: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#005067",
+        marginBottom: "2%",
+    },
 });
