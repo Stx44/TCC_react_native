@@ -2,16 +2,16 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ImageBackground,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ImageBackground,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -48,7 +48,7 @@ export default function Login() {
     setLoading(true);
     try {
       const dados = await login(email, senha);
-      Alert.alert("Sucesso", "Usuário logado com sucesso!");
+      Alert.alert("Sucesso", "Senha redefinida com sucesso!");
       setEmail("");
       setSenha("");
       router.replace("/homepage");
@@ -61,7 +61,7 @@ export default function Login() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/fundo.png")}
+      source={require("../assets/images/paredebranca.png")}
       style={styles.background}
     >
       <SafeAreaView style={styles.container}>
@@ -72,20 +72,22 @@ export default function Login() {
           </TouchableOpacity>
 
           <Image
-            source={require("../assets/images/logobranca.png")}
+            source={require("../assets/images/logo.png")}
             style={styles.logoSuperior}
           />
         </View>
 
         <View style={styles.content}>
           <Image
-            source={require("../assets/images/logo_health_white.png")}
+            source={require("../assets/images/logo_health.png")}
             style={styles.logoCentral}
           />
 
+          <Text style={styles.aviso}>Insira seu email abaixo para redefinir sua senha</Text>
+
           <TextInput
             placeholder="Email"
-            placeholderTextColor="#ffffffff"
+            placeholderTextColor="#005067"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -93,25 +95,12 @@ export default function Login() {
             style={styles.inputNative}
           />
 
-          <TextInput
-            placeholder="Senha"
-            placeholderTextColor="#ffffffff"
-            value={senha}
-            onChangeText={setSenha}
-            autoCapitalize="none"
-            secureTextEntry={oculto}
-            style={styles.inputNative}
-          />
-
-          <TouchableOpacity style={styles.botao} onPress={handleLogin} disabled={loading}>
+          <TouchableOpacity style={styles.botao} onPress ={() => router.push("/esqueciSenha2")}>
             {loading ? (
               <ActivityIndicator color="#005067" />
             ) : (
-              <Text style={styles.textBotao}>Entrar</Text>
+              <Text style={styles.textBotao}>Redefinir Senha</Text>
             )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.esqueciSenha} onPress={() => router.push("/esqueciSenha")}>
-            <Text style={styles.esqTxt}>Esqueceu a senha?</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -167,11 +156,11 @@ const styles = StyleSheet.create({
     height: "06%",
     marginBottom: "3%",
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: "#005067",
     borderRadius: 25,
     paddingHorizontal: "4%",
     paddingVertical: "2%",
-    color: "#ffffffff",
+    color: "#005067",
     backgroundColor: "transparent",
   },
   botao: {
@@ -182,11 +171,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: "#005067",
     marginTop: "3%",
   },
   textBotao: {
-    color: "white",
+    color: "#005067",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -203,5 +192,11 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "flex-end",
     marginTop: "2%",
+  },
+  aviso: {
+    color: "#005067",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: "3%",
   },
 });

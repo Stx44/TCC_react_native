@@ -32,7 +32,7 @@ export default function HomePage() {
 
         {/* BOTÕES METAS E PROGRESSO */}
         <View style={styles.areaBotao}>
-          <TouchableOpacity style={styles.botaoMetas}>
+          <TouchableOpacity style={styles.botaoMetas} onPress={() => router.push("/metasSemanais")}>
             <Image
               source={require("../assets/images/target.png")}
               style={styles.icone}
@@ -69,9 +69,9 @@ export default function HomePage() {
               style={styles.tabIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem}>
+          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
             <Image
-              source={require("../assets/images/dumbbell_teal.png")}
+              source={require("../assets/images/dumbbell_teal.png") }
               style={styles.tabIcon}
             />
           </TouchableOpacity>
