@@ -107,8 +107,11 @@ export default function Calendario({ backgroundImage }) {
 
       {/* Conteúdo rolável */}
       <ScrollView style={styles.scrollContainer} contentContainerStyle={{ paddingTop: 90, paddingBottom: 100 }}>
-        {/* Caixa IMC lado a lado */}
+        {/* Caixa IMC lado a lado com título cortando a borda */}
         <View style={styles.containerIMC}>
+          <View style={styles.tituloIMCWrapper}>
+            <Text style={styles.tituloIMC}>IMC</Text>
+          </View>
           <View style={styles.inputsIMC}>
             <TextInput
               placeholder='Altura'
@@ -142,66 +145,75 @@ export default function Calendario({ backgroundImage }) {
               </Text>
             )}
             {imc && (
-          <View style={styles.nivelIMCBox}>
-            <Text style={styles.nivelIMC}>{nivelIMC(imc)}</Text>
+              <View style={styles.nivelIMCBox}>
+                <Text style={styles.nivelIMC}>{nivelIMC(imc)}</Text>
+              </View>
+            )}
           </View>
-        )}
-          </View>
-          
         </View>
-        {/* Quadrado pequeno fora da caixa IMC */}
-        
 
-        {/* Cabeçalho semanal */}
-        <FlatList
-          horizontal
-          data={diasSemana}
-          keyExtractor={(item) => item.dataCompleta}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.weekContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.dayItem,
-                diaSelecionado === item.dataCompleta && styles.daySelected
-              ]}
-              onPress={() => setDiaSelecionado(item.dataCompleta)}
-            >
-              <Text style={[styles.dayLabel, diaSelecionado === item.dataCompleta && { color: '#fff' }]}>
-                {item.label}
-              </Text>
-              <Text style={styles.dayNumber}>{item.numero}</Text>
-            </TouchableOpacity>
-          )}
-        />
-
-        {/* Lista de eventos */}
-        <View style={styles.eventsContainer}>
-          <Text style={styles.title}>
-            Eventos de {moment(diaSelecionado).format('dddd, D [de] MMMM')}
-          </Text>
-
-          {eventos[diaSelecionado]?.length ? (
-            eventos[diaSelecionado].map((ev, i) => (
-              <Text key={i} style={styles.eventItem}>
-                • {ev}
-              </Text>
-            ))
-          ) : (
-            <Text style={styles.noEvent}>
-              Nenhum evento para este dia
-            </Text>
-          )}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Novo evento"
-            value={novoEvento}
-            onChangeText={setNovoEvento}
+        <View>
+          <Image
+            source={require("../assets/images/divisoriaTabela.png")}
+            style={styles.divisoria}
           />
-          <TouchableOpacity style={styles.Button} onPress={salvarEvento}>
-            <Text style={styles.textoBtn}>Adicionar Evento</Text>
-          </TouchableOpacity>
+        </View>
+
+        {/* Calendário com título cortando a borda */}
+        <View style={styles.calendario1}>
+          <View style={styles.tituloCalendarioWrapper}>
+            <Text style={styles.tituloCalendario}>Calendário</Text>
+          </View>
+          <FlatList
+            horizontal
+            data={diasSemana}
+            keyExtractor={(item) => item.dataCompleta}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.weekContainer}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.dayItem,
+                  diaSelecionado === item.dataCompleta && styles.daySelected
+                ]}
+                onPress={() => setDiaSelecionado(item.dataCompleta)}
+              >
+                <Text style={[styles.dayLabel, diaSelecionado === item.dataCompleta && { color: '#fff' }]}>
+                  {item.label}
+                </Text>
+                <Text style={styles.dayNumber}>{item.numero}</Text>
+              </TouchableOpacity>
+            )}
+          />
+
+          {/* Lista de eventos */}
+          <View style={styles.eventsContainer}>
+            <Text style={styles.title}>
+              Eventos de {moment(diaSelecionado).format('dddd, D [de] MMMM')}
+            </Text>
+
+            {eventos[diaSelecionado]?.length ? (
+              eventos[diaSelecionado].map((ev, i) => (
+                <Text key={i} style={styles.eventItem}>
+                  • {ev}
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.noEvent}>
+                Nenhum evento para este dia
+              </Text>
+            )}
+
+            <TextInput
+              style={styles.input}
+              placeholder="Novo evento"
+              value={novoEvento}
+              onChangeText={setNovoEvento}
+            />
+            <TouchableOpacity style={styles.Button} onPress={salvarEvento}>
+              <Text style={styles.textoBtn}>Adicionar Evento</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -346,6 +358,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   containerIMC: {
+    marginTop: "18%",
     width: '90%',
     alignSelf: 'center',
     borderColor: "#005067",
@@ -356,6 +369,28 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     minHeight: 160,
+    position: 'relative',
+  },
+  tituloIMCWrapper: {
+    position: 'absolute',
+    top: -18,
+    left: '61%', // centraliza horizontalmente
+    transform: [{ translateX: -60 }], // metade da largura aproximada do título
+    backgroundColor: '#fff',
+    paddingHorizontal: 18,
+    paddingVertical: 2,
+    borderRadius: 15,
+    // Remova as bordas:
+    // borderWidth: 2,
+    // borderColor: '#005067',
+    zIndex: 2,
+    alignItems: 'center',
+  },
+  tituloIMC: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#005067',
+    textAlign: 'center',
   },
   inputsIMC: {
     width: '56%',
@@ -364,8 +399,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   resultadoIMC: {
-    marginTop: 60,
-    marginRight: 10,
+    marginTop: "19%",
+    marginRight: "3%",
     justifyContent: 'center',
     alignItems: 'center',
     padding: 7,
@@ -396,14 +431,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   textoResultadoIMC: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: 'bold',
     color: '#005067',
     textAlign: 'center',
   },
   nivelIMCBox: {
     alignSelf: 'center',
-    marginTop: 10,
+    marginTop: "2%",
     backgroundColor: 'white',
     borderWidth: 1,
     borderColor: '#005067',
@@ -423,4 +458,47 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
   },
+  calendario1: {
+    marginTop: "5%",
+    borderWidth: 2,
+    borderRadius: 30,
+    borderColor: "#005067",
+    width: "90%",
+    alignItems: 'center',
+    alignSelf: "center",
+    flex: 1,
+    position: 'relative',
+    paddingTop: 30,
+    paddingBottom: 18,
+    paddingHorizontal: 18,
+    backgroundColor: '#fff',
+  },
+  tituloCalendarioWrapper: {
+    position: 'absolute',
+    top: -18,
+    left: '57%', // centraliza horizontalmente
+    transform: [{ translateX: -60 }], // metade da largura aproximada do título
+    backgroundColor: '#fff',
+    paddingHorizontal: 18,
+    paddingVertical: 2,
+    borderRadius: 15,
+    // Remova as bordas:
+    // borderWidth: 2,
+    // borderColor: '#005067',
+    zIndex: 2,
+    alignItems: 'center',
+  },
+  tituloCalendario: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#005067',
+    textAlign: 'center',
+  },
+  divisoria: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: "5%",
+    marginBottom: "5%",
+  }
 });
