@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-const API_BASE_URL = "https://api-neon-2pof.onrender.com";
+const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
 async function cadastrar(nome, email, senha) {
   const nomeLimpo = nome.trim();
