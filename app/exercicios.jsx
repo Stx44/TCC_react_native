@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Image,
-  ImageBackground,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
-  ScrollView,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
+import React, { useEffect, useState } from 'react';
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 moment.locale('pt-br');
 
@@ -92,7 +92,6 @@ export default function Exercicios() {
     setDiaSelecionado(lista[0].dataCompleta);
   };
 
-
   return (
     <ImageBackground
       source={require('../assets/images/paredebranca.png')}
@@ -101,132 +100,142 @@ export default function Exercicios() {
     >
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Cabeçalho superior */}
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.topo}>
-          <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#005067" />
-            <Text style={styles.txtVoltar}>Voltar</Text>
-          </TouchableOpacity>
-          <Image
-            source={require("../assets/images/logo.png")}
-            style={styles.logoSuperior}
-          />
-        </View>
-      </SafeAreaView>
-
-      {/* Conteúdo rolável */}
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={{ paddingBottom: width * 0.2 }}>
-        {/* Seção IMC */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Seu IMC</Text>
-          <View style={styles.imcContainer}>
-            <View style={styles.imcBox}>
-              <Text style={styles.imcValue}>{imc}</Text>
-              <View style={styles.imcClassBox}>
-                <Text style={styles.imcClass}>{classificacao}</Text>
-              </View>
-            </View>
-            <View style={styles.infoRow}>
-              <View style={styles.infoBox}>
-                <Text style={styles.label}>Peso atual</Text>
-                <TextInput
-                  style={styles.input}
-                  value={peso}
-                  onChangeText={setPeso}
-                  keyboardType="numeric"
-                />
-              </View>
-              <View style={styles.infoBox}>
-                <Text style={styles.label}>Altura atual</Text>
-                <TextInput
-                  style={styles.input}
-                  value={altura}
-                  onChangeText={setAltura}
-                  keyboardType="numeric"
-                />
-              </View>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>verificar tabela IMC</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View>
-          <Image
-            source={require("../assets/images/divisoriaTabela.png")}
-            style={styles.divisoria}
-          />
-        </View>
-
-        {/* Seção Meu Treino com o calendário completo */}
-        <View style={styles.treinoContainer}>
-          <Text style={styles.treinoTitle}>Meu Treino</Text>
-          <FlatList
-            horizontal
-            data={diasSemana}
-            keyExtractor={(item) => item.dataCompleta}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.weekContainer}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.dayItem,
-                  diaSelecionado === item.dataCompleta && styles.daySelected
-                ]}
-                onPress={() => setDiaSelecionado(item.dataCompleta)}
-              >
-                <Text style={[styles.dayLabel, diaSelecionado === item.dataCompleta && { color: '#fff' }]}>
-                  {item.label}
-                </Text>
-                <Text style={styles.dayNumber}>{item.numero}</Text>
-              </TouchableOpacity>
-            )}
-          />
-
-          <View style={styles.eventsContainer}>
-            <Text style={styles.title}>
-              Treinos de {moment(diaSelecionado).format('dddd, D [de] MMMM')}
-            </Text>
-
-            {eventos[diaSelecionado]?.length ? (
-              eventos[diaSelecionado].map((ev, i) => (
-                <Text key={i} style={styles.eventItem}>
-                  • {ev}
-                </Text>
-              ))
-            ) : (
-              <Text style={styles.noEvent}>
-                Nenhum evento para este dia
-              </Text>
-            )}
-
-            <TextInput
-              style={styles.inputEvento}
-              placeholder="Novo evento"
-              value={novoEvento}
-              onChangeText={setNovoEvento}
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={{ paddingBottom: width * 0.35 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Cabeçalho superior */}
+          <View style={styles.topo}>
+            <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color="#005067" />
+              <Text style={styles.txtVoltar}>Voltar</Text>
+            </TouchableOpacity>
+            <Image
+              source={require("../assets/images/logo.png")}
+              style={styles.logoSuperior}
             />
-            <TouchableOpacity style={styles.Button} onPress={salvarEvento}>
-              <Text style={styles.textoBtn}>Adicionar Evento</Text>
+          </View>
+
+          {/* Seção IMC */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Seu IMC</Text>
+            <View style={styles.imcContainer}>
+              <View style={styles.imcBox}>
+                <Text style={styles.imcValue}>{imc}</Text>
+                <View style={styles.imcClassBox}>
+                  <Text style={styles.imcClass}>{classificacao}</Text>
+                </View>
+              </View>
+              <View style={styles.infoRow}>
+                <View style={styles.infoBox}>
+                  <TextInput
+                    style={styles.input}
+                    value={peso}
+                    onChangeText={setPeso}
+                    keyboardType="numeric"
+                    placeholder='Peso atual (kg)'
+                    placeholderTextColor={"#999"}
+                  />
+                </View>
+                <View style={styles.infoBox}>
+                  <TextInput
+                    style={styles.input}
+                    value={altura}
+                    onChangeText={setAltura}
+                    keyboardType="numeric"
+                    placeholder='Altura (m)'
+                    placeholderTextColor={"#999"}
+                  />
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>verificar tabela IMC</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
 
-      {/* TAB BAR */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
-          <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
-          <Image source={require("../assets/images/home_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
-          <Image source={require("../assets/images/dumbbell_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-      </View>
+          {/* Espaço e divisória centralizada */}
+          <View style={styles.divisoriaContainer}>
+            <Image
+              source={require("../assets/images/divisoriaTabela.png")}
+              style={styles.divisoria}
+            />
+          </View>
+
+          {/* Seção Meu Treino */}
+          <View style={styles.treinoContainer}>
+            <Text style={styles.treinoTitle}>Meu Treino</Text>
+            <FlatList
+              horizontal
+              data={diasSemana}
+              keyExtractor={(item) => item.dataCompleta}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.weekContainer}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.dayItem,
+                    diaSelecionado === item.dataCompleta && styles.daySelected
+                  ]}
+                  onPress={() => setDiaSelecionado(item.dataCompleta)}
+                >
+                  <Text style={[styles.dayLabel, diaSelecionado === item.dataCompleta && { color: '#fff' }]}>
+                    {item.label}
+                  </Text>
+                  <Text style={styles.dayNumber}>{item.numero}</Text>
+                </TouchableOpacity>
+              )}
+            />
+
+            <View style={styles.eventsContainer}>
+              <Text style={styles.title}>
+                Treinos de {moment(diaSelecionado).format('dddd, D [de] MMMM')}
+              </Text>
+
+              {eventos[diaSelecionado]?.length ? (
+                eventos[diaSelecionado].map((ev, i) => (
+                  <View key={i} style={styles.eventBox}>
+                    <Text style={styles.eventText}>{ev}</Text>
+                    <TouchableOpacity style={styles.addButton}>
+                      <Text style={styles.addButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noEvent}>
+                  Nenhum evento para este dia
+                </Text>
+              )}
+
+              <TextInput
+                style={styles.inputEvento}
+                placeholder="Novo evento"
+                value={novoEvento}
+                onChangeText={setNovoEvento}
+                placeholderTextColor="#999"
+              />
+              <TouchableOpacity style={styles.Button} onPress={salvarEvento}>
+                <Text style={styles.textoBtn}>Adicionar Evento</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* TAB BAR */}
+        <View style={styles.tabBar}>
+          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
+            <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
+            <Image source={require("../assets/images/home_teal.png")} style={styles.tabIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
+            <Image source={require("../assets/images/dumbbell_teal.png")} style={styles.tabIcon} />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
@@ -235,14 +244,6 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  safeArea: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-  },
   topo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -250,6 +251,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: width * 0.04,
     paddingVertical: width * 0.02,
+    marginBottom: width * 0.04,
   },
   voltar: {
     flexDirection: 'row',
@@ -266,30 +268,29 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   scrollContainer: {
-    flex: 1,
-    paddingHorizontal: '5%',
-    paddingTop: width * 0.25,
+    paddingHorizontal: '7%',
   },
   sectionContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '5%',
-    paddingTop: 0,
+    padding: '4%',
     alignSelf: 'center',
+    marginBottom: 0,
   },
   sectionTitle: {
     fontSize: width * 0.045,
     fontWeight: 'bold',
     color: '#005067',
-    marginBottom: '2%',
-    marginLeft: "10%",
-    alignSelf: 'flex-start',
+    marginBottom: '1%',
+    alignSelf: 'center',
   },
   imcContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    height: width * 0.4,  
     width: '100%',
     marginBottom: '5%',
+    padding: '3%',
   },
   imcBox: {
     borderWidth: 2,
@@ -299,11 +300,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '40%',
-    height: '45%',
+    height: '49%',
     marginTop: '07%',
   },
   imcValue: {
-    fontSize: width * 0.08,
+    fontSize: width * 0.10,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: '1%',
   },
   imcClass: {
-    fontSize: width * 0.035,
+    fontSize: width * 0.025,
     color: '#005067',
     textAlign: 'center',
   },
@@ -325,36 +326,29 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-between',
     width: '55%',
-    height: '27%',
+    height: '45%',
   },
   infoBox: {
     borderWidth: 2,
     borderColor: '#005067',
-    borderRadius: 20,
-    padding: '3%',
-    marginBottom: '3%',
+    borderRadius: 25,
+    padding: '1%',
+    marginBottom: '1%',
     alignItems: 'center',
-  },
-  label: {
-    fontSize: width * 0.035,
-    color: '#005067',
-    fontWeight: '600',
-    marginBottom: '2%',
+    marginTop: '10%',
   },
   input: {
-    fontSize: width * 0.04,
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'center',
     width: '100%',
+    fontSize: width * 0.04,
   },
   button: {
-    marginTop: '1%',
     backgroundColor: '#005067',
     borderRadius: 20,
     paddingVertical: '3%',
     paddingHorizontal: '6%',
-    marginBottom: '5%',
     width: '80%',
   },
   buttonText: {
@@ -363,11 +357,15 @@ const styles = StyleSheet.create({
     fontSize: width * 0.04,
     textAlign: 'center',
   },
+  divisoriaContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: width * 0.16,
+  },
   divisoria: {
     width: width * 0.8,
     height: 2,
     resizeMode: 'stretch',
-    marginVertical: '5%',
     alignSelf: 'center',
   },
   treinoContainer: {
@@ -375,6 +373,7 @@ const styles = StyleSheet.create({
     borderColor: '#005067',
     borderRadius: 15,
     padding: '4%',
+    marginTop: 0,
     marginBottom: '5%',
   },
   treinoTitle: {
@@ -419,9 +418,35 @@ const styles = StyleSheet.create({
     color: '#005067',
     marginBottom: '3%',
   },
-  eventItem: {
-    fontSize: width * 0.04,
-    marginBottom: '2%',
+  eventBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginBottom: 10,
+  },
+  eventText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  addButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#005067',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   noEvent: {
     fontSize: width * 0.035,

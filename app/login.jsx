@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-const API_BASE_URL = "https://apineon-production.up.railway.app";
+const API_BASE_URL = "https://api-neon-2paf.onrender.com";
 
 async function login(email, senha) {
   const emailLimpo = email.trim().toLowerCase();
