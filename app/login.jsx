@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -14,44 +13,55 @@ import {
   View,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import axios from "axios";
+// ⚠️ Importa o hook para acessar o contexto de autenticação
+import { useAuth } from './AuthContext';
 
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
-async function login(email, senha) {
-  const emailLimpo = email.trim().toLowerCase();
-  const senhaLimpa = senha.trim();
-
-  if (!emailLimpo || !senhaLimpa) {
-    throw new Error("Preencha todos os campos.");
-  }
-
-  if (!emailLimpo.includes("@") || !emailLimpo.includes(".")) {
-    throw new Error("Email inválido.");
-  }
-
-  const response = await axios.post(`${API_BASE_URL}/login`, {
-    email: emailLimpo,
-    senha: senhaLimpa,
-  });
-
-  return response.data;
-}
-
+// ⚠️ A função de login foi movida para dentro do componente
+// para que ela possa acessar o 'useAuth'
 export default function Login() {
   const [oculto, setOculto] = useState(true);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  // ⚠️ Acessa a função 'login' do contexto
+  const { login } = useAuth(); 
 
   const handleLogin = async () => {
     setLoading(true);
+    const emailLimpo = email.trim().toLowerCase();
+    const senhaLimpa = senha.trim();
+
+    if (!emailLimpo || !senhaLimpa) {
+      Alert.alert("Erro", "Preencha todos os campos.");
+      setLoading(false);
+      return;
+    }
+
+    if (!emailLimpo.includes("@") || !emailLimpo.includes(".")) {
+      Alert.alert("Erro", "Email inválido.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const dados = await login(email, senha);
-      Alert.alert("Sucesso", "Usuário logado com sucesso!");
-      setEmail("");
-      setSenha("");
-      router.replace("/homepage");
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        email: emailLimpo,
+        senha: senhaLimpa,
+      });
+
+      if (response.data.sucesso) {
+        // ⚠️ AQUI ESTÁ A MUDANÇA PRINCIPAL
+        // Salva o ID do usuário no contexto global
+        login(response.data.usuario.id.toString());
+        Alert.alert("Sucesso", "Usuário logado com sucesso!");
+        router.replace("/homepage");
+      } else {
+        Alert.alert("Erro", "Credenciais inválidas.");
+      }
     } catch (error) {
       Alert.alert("Erro", error.message || "Erro ao fazer login.");
     } finally {
@@ -190,7 +200,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  esqTxt: {
+  esqueciSenha: {
     color: "#ffffffff",
     fontSize: 16,
     marginTop: "4%",
@@ -198,10 +208,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textDecorationLine: "underline",
     marginRight: "11%"
-  },
-  esqueciSenha: {
-    width: "100%",
-    alignItems: "flex-end",
-    marginTop: "2%",
   },
 });

@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router"; // ⚠️ Adicione o useLocalSearchParams
 import {
   Image,
   ImageBackground,
@@ -10,6 +10,8 @@ import {
 } from "react-native";
 
 export default function HomePage() {
+  const { usuarioId } = useLocalSearchParams(); // ⚠️ Obtenha o ID do usuário aqui
+
   return (
     <ImageBackground
       source={require("../assets/images/paredebranca.png")}
@@ -43,7 +45,10 @@ export default function HomePage() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.botaoMetas}>
+          {/* ⚠️ MUDANÇA AQUI: passe o ID do usuário para a tela de progresso. */}
+          <TouchableOpacity 
+            style={styles.botaoMetas} 
+            onPress={() => router.push({ pathname: "/acompanharProgresso", params: { usuarioId } })}>
             <Image
               source={require("../assets/images/progresso.png")}
               style={styles.icone}

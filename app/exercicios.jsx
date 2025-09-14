@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -18,12 +20,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from './AuthContext';
 
 moment.locale('pt-br');
 
 const { width } = Dimensions.get('window');
 
+const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
+
 export default function Exercicios() {
+  const { usuarioId } = useAuth();
   const [peso, setPeso] = useState('85');
   const [altura, setAltura] = useState('1.77');
   const [imc, setImc] = useState(0);
@@ -57,6 +63,37 @@ export default function Exercicios() {
     setEventos(novosEventos);
     await AsyncStorage.setItem('treinosSemana', JSON.stringify(novosEventos));
     setNovoEvento('');
+  };
+
+  const marcarComoConcluido = async (eventoParaConcluir) => {
+    if (!usuarioId) {
+      Alert.alert("Erro", "ID do usuário não encontrado. Tente logar novamente.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/dashboard/exercicio/concluido`, {
+        usuario_id: usuarioId,
+        nome_exercicio: eventoParaConcluir,
+        data: diaSelecionado
+      });
+
+      if (response.data.sucesso) {
+        const novosEventos = { ...eventos };
+        const index = novosEventos[diaSelecionado].indexOf(eventoParaConcluir);
+        if (index > -1) {
+          novosEventos[diaSelecionado].splice(index, 1);
+        }
+        setEventos(novosEventos);
+        await AsyncStorage.setItem('treinosSemana', JSON.stringify(novosEventos));
+        Alert.alert("Sucesso", "Exercício concluído e registrado!");
+      } else {
+        Alert.alert("Erro", "Não foi possível marcar o exercício como concluído.");
+      }
+    } catch (error) {
+      console.error("Erro ao conectar com a API:", error.response?.data || error.message);
+      Alert.alert("Erro", "Não foi possível registrar o evento. Verifique sua conexão ou a API.");
+    }
   };
 
   const calcularIMC = () => {
@@ -198,7 +235,7 @@ export default function Exercicios() {
                 eventos[diaSelecionado].map((ev, i) => (
                   <View key={i} style={styles.eventBox}>
                     <Text style={styles.eventText}>{ev}</Text>
-                    <TouchableOpacity style={styles.addButton}>
+                    <TouchableOpacity style={styles.addButton} onPress={() => marcarComoConcluido(ev)}>
                       <Text style={styles.addButtonText}>+</Text>
                     </TouchableOpacity>
                   </View>
@@ -287,7 +324,7 @@ const styles = StyleSheet.create({
   imcContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: width * 0.4,  
+    height: width * 0.4,
     width: '100%',
     marginBottom: '5%',
     padding: '3%',

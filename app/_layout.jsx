@@ -8,6 +8,9 @@ import { ActivityIndicator, View } from 'react-native';
 // ⬇ Este import garante que possamos aplicar o estilo global
 import { setCustomText } from 'react-native-global-props';
 
+// ⚠️ Importe o AuthProvider que você acabou de criar
+import { AuthProvider } from './AuthContext';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -31,9 +34,12 @@ export default function RootLayout() {
   });
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-    </ThemeProvider>
+    // ⚠️ Envolva o ThemeProvider e a navegação com o AuthProvider
+    <AuthProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
