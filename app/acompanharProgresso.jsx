@@ -29,7 +29,7 @@ export default function AcompanharProgresso() {
   const [loading, setLoading] = useState(true);
   const [ranking, setRanking] = useState([]);
   const [evolucaoPeso, setEvolucaoPeso] = useState([]);
-  const [metasSemanais, setMetasSemanais] = useState([]);
+  const [metasIndividuais, setMetasIndividuais] = useState([]);
 
   useEffect(() => {
     if (usuarioId) {
@@ -47,13 +47,13 @@ export default function AcompanharProgresso() {
       ]);
       setRanking(rankingResponse.data || []);
       setEvolucaoPeso(evolucaoResponse.data.evolucao_peso || []);
-      setMetasSemanais(metasResponse.data.metas || []);
+      setMetasIndividuais(metasResponse.data.metas || []);
     } catch (error) {
       console.error("Erro ao buscar dados do dashboard:", error.response?.data || error.message);
       Alert.alert("Erro", "Não foi possível buscar dados do dashboard. Verifique sua conexão ou a API.");
       setRanking([]);
       setEvolucaoPeso([]);
-      setMetasSemanais([]);
+      setMetasIndividuais([]);
     } finally {
       setLoading(false);
     }
@@ -64,14 +64,47 @@ export default function AcompanharProgresso() {
     label: moment(item.data_registro).format('DD/MM')
   })) : [];
 
-  const metasData = Array.isArray(metasSemanais) ? metasSemanais.map(item => ({
-    stacks: [
-      { value: parseInt(item.metas_concluidas), color: '#42B883' },
-      { value: parseInt(item.total_metas) - parseInt(item.metas_concluidas), color: '#e0e0e0' },
-    ],
-    label: moment(item.data_semana).format('DD/MM'),
-  })) : [];
+  const processarMetasParaGrafico = () => {
+    // ✅ Verificação robusta: Se metasIndividuais não for um array, retorna um array vazio.
+    if (!Array.isArray(metasIndividuais)) {
+      return [];
+    }
+    
+    const metasPorSemana = metasIndividuais.reduce((acc, meta) => {
+      // ✅ Verificação para garantir que meta.data_agendada existe e é válida.
+      if (!meta.data_agendada) {
+          return acc;
+      }
+      const semanaInicio = moment(meta.data_agendada).startOf('week').format('DD/MM');
+      if (!acc[semanaInicio]) {
+        acc[semanaInicio] = { total: 0, concluidas: 0 };
+      }
+      acc[semanaInicio].total += 1;
+      if (meta.concluido) {
+        acc[semanaInicio].concluidas += 1;
+      }
+      return acc;
+    }, {});
+
+    const dadosGrafico = Object.keys(metasPorSemana).map(semana => {
+      const metasConcluidas = metasPorSemana[semana].concluidas;
+      const totalMetas = metasPorSemana[semana].total;
+      const metasNaoConcluidas = totalMetas - metasConcluidas;
+
+      return {
+        stacks: [
+          { value: metasConcluidas, color: '#42B883' },
+          { value: metasNaoConcluidas, color: '#e0e0e0' },
+        ],
+        label: semana,
+      };
+    });
+
+    return dadosGrafico;
+  };
   
+  const metasData = processarMetasParaGrafico();
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -107,7 +140,7 @@ export default function AcompanharProgresso() {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Meu Ranking</Text>
             <View style={styles.rankingContainer}>
-              {ranking && ranking.length > 0 ? (
+              {Array.isArray(ranking) && ranking.length > 0 ? (
                 ranking.map((item, index) => (
                   <View key={index} style={styles.rankingItem}>
                     <Text style={styles.rankingPosition}>{index + 1}.</Text>
@@ -128,7 +161,7 @@ export default function AcompanharProgresso() {
           {/* Gráfico de Evolução de Peso */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Evolução Peso/IMC</Text>
-            {evolucaoData && evolucaoData.length > 0 ? (
+            {Array.isArray(evolucaoData) && evolucaoData.length > 0 ? (
               <BarChart
                 data={evolucaoData}
                 yAxisLabelSuffix="kg"
@@ -150,7 +183,7 @@ export default function AcompanharProgresso() {
           {/* Gráfico de Metas - Bar Chart para Metas Concluídas e Não Concluídas */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Evolução Metas</Text>
-            {metasData.length > 0 ? (
+            {Array.isArray(metasData) && metasData.length > 0 ? (
               <BarChart
                 data={metasData}
                 isStacked
@@ -215,10 +248,9 @@ const styles = StyleSheet.create({
     height: width * 0.1,
     resizeMode: 'contain',
   },
-  // ⬅️ Alterado: O padding horizontal foi movido para cá
   scrollContentContainer: {
     paddingHorizontal: '7%',
-    flexGrow: 1, // Isso garante que o conteúdo rola quando a tela está cheia
+    flexGrow: 1,
   },
   titulo: {
     fontSize: width * 0.05,

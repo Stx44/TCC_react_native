@@ -20,6 +20,9 @@ import {
   View,
 } from 'react-native';
 
+// ✅ Importe o seu AuthContext
+import { useAuth } from './AuthContext';
+
 const { width } = Dimensions.get('window');
 
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
@@ -31,17 +34,18 @@ export default function MetasSemanais() {
   const [mesSelecionado, setMesSelecionado] = useState(moment().format('YYYY-MM'));
   const [semanasDoMes, setSemanasDoMes] = useState([]);
   const [semanaSelecionada, setSemanaSelecionada] = useState(moment().startOf('week').format('YYYY-MM-DD'));
-  const [usuarioId, setUsuarioId] = useState(null);
+  
+  // ✅ Use o hook useAuth para obter o ID do usuário
+  const { usuarioId } = useAuth();
 
-  // ✅ CORREÇÃO: Nova função para carregar metas do backend
-  const carregarMetasDoBackend = async (idDoUsuario) => {
-    if (!idDoUsuario) {
+  const carregarMetasDoBackend = async () => {
+    if (!usuarioId) {
         console.log("ID do usuário não disponível. Não foi possível carregar as metas do backend.");
         return;
     }
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/metas/${idDoUsuario}`);
+      const response = await axios.get(`${API_BASE_URL}/metas/${usuarioId}`);
       const metasDoBackend = response.data.metas;
       
       const metasFormatadas = {};
@@ -66,20 +70,12 @@ export default function MetasSemanais() {
     }
   };
 
-  // ✅ CORREÇÃO: Use este useEffect para carregar o ID do usuário e, em seguida, carregar as metas
+  // ✅ Atualize o useEffect para usar o usuarioId do contexto
   useEffect(() => {
-    const carregarDadosEmetas = async () => {
-      const usuarioData = await AsyncStorage.getItem('usuario');
-      if (usuarioData) {
-        const usuario = JSON.parse(usuarioData);
-        setUsuarioId(usuario.id);
-        carregarMetasDoBackend(usuario.id);
-      } else {
-        Alert.alert("Atenção", "Usuário não identificado. Por favor, faça login novamente.");
-      }
-    };
-    carregarDadosEmetas();
-  }, []); // O array de dependências está vazio para rodar apenas uma vez na montagem do componente
+    if (usuarioId) {
+        carregarMetasDoBackend();
+    }
+  }, [usuarioId]);
 
   useEffect(() => {
     gerarSemanasDoMes(mesSelecionado);
