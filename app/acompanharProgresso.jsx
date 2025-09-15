@@ -65,13 +65,11 @@ export default function AcompanharProgresso() {
   })) : [];
 
   const processarMetasParaGrafico = () => {
-    // ✅ Verificação robusta: Se metasIndividuais não for um array, retorna um array vazio.
     if (!Array.isArray(metasIndividuais)) {
       return [];
     }
     
     const metasPorSemana = metasIndividuais.reduce((acc, meta) => {
-      // ✅ Verificação para garantir que meta.data_agendada existe e é válida.
       if (!meta.data_agendada) {
           return acc;
       }
@@ -120,6 +118,7 @@ export default function AcompanharProgresso() {
       resizeMode="cover"
     >
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      {/* ✅ Adicionado flex: 1 para que a SafeAreaView ocupe todo o espaço disponível */}
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContentContainer} showsVerticalScrollIndicator={false}>
           {/* Cabeçalho superior */}
