@@ -30,8 +30,8 @@ const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
 export default function Exercicios() {
   const { usuarioId } = useAuth();
-  const [peso, setPeso] = useState('85');
-  const [altura, setAltura] = useState('1.77');
+  const [peso, setPeso] = useState('');
+  const [altura, setAltura] = useState('');
   const [imc, setImc] = useState(0);
   const [classificacao, setClassificacao] = useState('');
   const [diasSemana, setDiasSemana] = useState([]);
@@ -66,6 +66,12 @@ export default function Exercicios() {
   };
 
   const marcarComoConcluido = async (eventoParaConcluir) => {
+    // Validação para garantir que o eventoParaConcluir não está vazio
+    if (!eventoParaConcluir) {
+      Alert.alert("Erro", "O evento a ser concluído não foi encontrado.");
+      return;
+    }
+
     if (!usuarioId) {
       Alert.alert("Erro", "ID do usuário não encontrado. Tente logar novamente.");
       return;
@@ -88,11 +94,17 @@ export default function Exercicios() {
         await AsyncStorage.setItem('treinosSemana', JSON.stringify(novosEventos));
         Alert.alert("Sucesso", "Exercício concluído e registrado!");
       } else {
-        Alert.alert("Erro", "Não foi possível marcar o exercício como concluído.");
+        // Tratar falha da API mesmo que a requisição tenha sucesso (código 200)
+        Alert.alert("Erro", response.data.erro || "Não foi possível marcar o exercício como concluído.");
       }
     } catch (error) {
       console.error("Erro ao conectar com a API:", error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível registrar o evento. Verifique sua conexão ou a API.");
+      // Aqui tratamos a mensagem de erro específica do HTML que a API pode retornar
+      if (error.response?.data?.includes('Cannot GET')) {
+        Alert.alert("Erro de API", "Não foi possível encontrar a rota do servidor.");
+      } else {
+        Alert.alert("Erro", "Não foi possível registrar o evento. Verifique sua conexão ou a API.");
+      }
     }
   };
 
@@ -171,7 +183,6 @@ export default function Exercicios() {
                     style={styles.input}
                     value={peso}
                     onChangeText={setPeso}
-                    keyboardType="numeric"
                     placeholder='Peso atual (kg)'
                     placeholderTextColor={"#999"}
                   />
@@ -181,7 +192,6 @@ export default function Exercicios() {
                     style={styles.input}
                     value={altura}
                     onChangeText={setAltura}
-                    keyboardType="numeric"
                     placeholder='Altura (m)'
                     placeholderTextColor={"#999"}
                   />

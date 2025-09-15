@@ -14,9 +14,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BarChart, LineChart } from 'react-native-gifted-charts';
+import { BarChart } from 'react-native-gifted-charts';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
+import moment from 'moment';
+import 'moment/locale/pt-br';
 
 const { width } = Dimensions.get('window');
 
@@ -43,22 +45,33 @@ export default function AcompanharProgresso() {
         axios.get(`${API_BASE_URL}/dashboard/evolucao-peso/${usuarioId}`),
         axios.get(`${API_BASE_URL}/dashboard/metas/${usuarioId}`)
       ]);
-      setRanking(rankingResponse.data);
-      setEvolucaoPeso(evolucaoResponse.data.evolucao_peso);
-      setMetasSemanais(metasResponse.data.metas);
+      setRanking(rankingResponse.data || []);
+      setEvolucaoPeso(evolucaoResponse.data.evolucao_peso || []);
+      setMetasSemanais(metasResponse.data.metas || []);
     } catch (error) {
       console.error("Erro ao buscar dados do dashboard:", error.response?.data || error.message);
       Alert.alert("Erro", "Não foi possível buscar dados do dashboard. Verifique sua conexão ou a API.");
+      setRanking([]);
+      setEvolucaoPeso([]);
+      setMetasSemanais([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const evolucaoData = evolucaoPeso.map(item => ({
+  const evolucaoData = Array.isArray(evolucaoPeso) ? evolucaoPeso.map(item => ({
     value: parseFloat(item.peso),
-    label: item.data
-  }));
+    label: moment(item.data_registro).format('DD/MM')
+  })) : [];
 
+  const metasData = Array.isArray(metasSemanais) ? metasSemanais.map(item => ({
+    stacks: [
+      { value: parseInt(item.metas_concluidas), color: '#42B883' },
+      { value: parseInt(item.total_metas) - parseInt(item.metas_concluidas), color: '#e0e0e0' },
+    ],
+    label: moment(item.data_semana).format('DD/MM'),
+  })) : [];
+  
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -75,7 +88,7 @@ export default function AcompanharProgresso() {
     >
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scrollContentContainer} showsVerticalScrollIndicator={false}>
           {/* Cabeçalho superior */}
           <View style={styles.topo}>
             <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
@@ -90,11 +103,11 @@ export default function AcompanharProgresso() {
 
           <Text style={styles.titulo}>Acompanhar progresso</Text>
 
-          {/* Ranking e Evolução do Peso */}
+          {/* Ranking */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Meu Ranking</Text>
             <View style={styles.rankingContainer}>
-              {ranking.length > 0 ? (
+              {ranking && ranking.length > 0 ? (
                 ranking.map((item, index) => (
                   <View key={index} style={styles.rankingItem}>
                     <Text style={styles.rankingPosition}>{index + 1}.</Text>
@@ -115,7 +128,7 @@ export default function AcompanharProgresso() {
           {/* Gráfico de Evolução de Peso */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Evolução Peso/IMC</Text>
-            {evolucaoPeso.length > 0 ? (
+            {evolucaoData && evolucaoData.length > 0 ? (
               <BarChart
                 data={evolucaoData}
                 yAxisLabelSuffix="kg"
@@ -134,23 +147,21 @@ export default function AcompanharProgresso() {
             )}
           </View>
 
-          {/* Gráfico de Metas */}
+          {/* Gráfico de Metas - Bar Chart para Metas Concluídas e Não Concluídas */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Evolução Metas</Text>
-            {metasSemanais.length > 0 ? (
-              <LineChart
-                data={metasSemanais.map(item => ({ value: item.metas_concluidas }))}
-                data2={metasSemanais.map(item => ({ value: item.total_metas }))}
-                dataPointsColor1="#005067"
-                dataPointsColor2="#42B883"
-                initialSpacing={30}
-                yAxisLabelSuffix="%"
-                height={180}
-                spacing={70}
-                color1="skyblue"
-                color2="orange"
-                hideDataPoints
-                hideRules
+            {metasData.length > 0 ? (
+              <BarChart
+                data={metasData}
+                isStacked
+                barWidth={22}
+                noOfSections={4}
+                height={200}
+                barBorderRadius={4}
+                yAxisLabelSuffix=""
+                xAxisColor="#ccc"
+                yAxisColor="#ccc"
+                textColor="#333"
               />
             ) : (
               <Text style={styles.noDataText}>Nenhum dado de metas disponível.</Text>
@@ -204,8 +215,10 @@ const styles = StyleSheet.create({
     height: width * 0.1,
     resizeMode: 'contain',
   },
-  scrollContainer: {
+  // ⬅️ Alterado: O padding horizontal foi movido para cá
+  scrollContentContainer: {
     paddingHorizontal: '7%',
+    flexGrow: 1, // Isso garante que o conteúdo rola quando a tela está cheia
   },
   titulo: {
     fontSize: width * 0.05,
