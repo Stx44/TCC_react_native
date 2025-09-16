@@ -24,7 +24,7 @@ export default function HomePage() {
             source={require("../assets/images/logo.png")}
             style={styles.logoSuperior}
           />
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push({ pathname: "/perfil", params: { usuarioId } })}>
             <Image
               source={require("../assets/images/perfil_teal.png")}
               style={styles.perfil}
