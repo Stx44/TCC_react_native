@@ -19,12 +19,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-// ✅ Importe o seu AuthContext
 import { useAuth } from './AuthContext';
 
 const { width } = Dimensions.get('window');
-
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
 export default function MetasSemanais() {
@@ -34,46 +31,41 @@ export default function MetasSemanais() {
   const [mesSelecionado, setMesSelecionado] = useState(moment().format('YYYY-MM'));
   const [semanasDoMes, setSemanasDoMes] = useState([]);
   const [semanaSelecionada, setSemanaSelecionada] = useState(moment().startOf('week').format('YYYY-MM-DD'));
-  
-  // ✅ Use o hook useAuth para obter o ID do usuário
   const { usuarioId } = useAuth();
 
   const carregarMetasDoBackend = async () => {
     if (!usuarioId) {
-        console.log("ID do usuário não disponível. Não foi possível carregar as metas do backend.");
-        return;
+      console.log("ID do usuário não disponível.");
+      return;
     }
-
     try {
       const response = await axios.get(`${API_BASE_URL}/metas/${usuarioId}`);
       const metasDoBackend = response.data.metas;
-      
       const metasFormatadas = {};
+      
       metasDoBackend.forEach(item => {
         const data_semana = moment(item.data_agendada).startOf('week').format('YYYY-MM-DD');
         if (!metasFormatadas[data_semana]) {
-            metasFormatadas[data_semana] = [];
+          metasFormatadas[data_semana] = [];
         }
+        // ✅ Mantemos todas as metas no estado inicial para outros cálculos, se necessário
         metasFormatadas[data_semana].push({
-            id: item.id,
-            descricao: item.descricao,
-            completed: item.concluido,
-            data_agendada: item.data_agendada,
+          id: item.id,
+          descricao: item.descricao,
+          concluido: item.concluido,
+          data_agendada: item.data_agendada,
         });
       });
-
       setMetas(metasFormatadas);
-      console.log("Metas carregadas do backend:", metasFormatadas);
     } catch (error) {
       console.error("Erro ao carregar metas do backend:", error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível conectar ao servidor para carregar suas metas.");
+      Alert.alert("Erro", "Não foi possível carregar suas metas.");
     }
   };
 
-  // ✅ Atualize o useEffect para usar o usuarioId do contexto
   useEffect(() => {
     if (usuarioId) {
-        carregarMetasDoBackend();
+      carregarMetasDoBackend();
     }
   }, [usuarioId]);
 
@@ -99,7 +91,6 @@ export default function MetasSemanais() {
     const endOfMonth = moment(mes).endOf('month');
     const semanas = [];
     let currentWeekStart = moment(startOfMonth).startOf('week');
-
     while (currentWeekStart.isSameOrBefore(endOfMonth)) {
       const weekDates = [];
       for (let i = 0; i < 7; i++) {
@@ -124,28 +115,15 @@ export default function MetasSemanais() {
     if (!novaMeta.trim()) {
       return Alert.alert("Atenção", "Por favor, digite sua meta.");
     }
-    
-    if (usuarioId) { 
+    if (usuarioId) {
       try {
         const response = await axios.post(`${API_BASE_URL}/metas`, {
           usuario_id: usuarioId,
           descricao: novaMeta,
           data_agendada: semanaSelecionada,
         });
-
-        const novaMetaDoBackend = response.data.meta;
-        const novasMetas = { ...metas };
-        if (!novasMetas[semanaSelecionada]) {
-            novasMetas[semanaSelecionada] = [];
-        }
-        novasMetas[semanaSelecionada].push({
-            id: novaMetaDoBackend.id,
-            descricao: novaMetaDoBackend.descricao,
-            completed: novaMetaDoBackend.concluido,
-            data_agendada: novaMetaDoBackend.data_agendada,
-        });
-        setMetas(novasMetas);
-        await AsyncStorage.setItem('metasSemanais', JSON.stringify(novasMetas));
+        // Após salvar, recarrega as metas para garantir que a lista está atualizada
+        await carregarMetasDoBackend();
         setNovaMeta('');
         Alert.alert("Sucesso", "Meta salva com sucesso!");
       } catch (error) {
@@ -159,31 +137,11 @@ export default function MetasSemanais() {
 
   const marcarMetaComoConcluida = async (metaId) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/metas/${metaId}`);
-
-      const metaConcluidaNoBackend = response.data.meta;
-      
-      const novasMetas = { ...metas };
-      const semanaMetas = novasMetas[semanaSelecionada] || [];
-      const metaIndex = semanaMetas.findIndex(meta => meta.id === metaId);
-      
-      if (metaIndex !== -1) {
-          const metaConcluida = { ...semanaMetas[metaIndex], completed: true };
-          semanaMetas.splice(metaIndex, 1);
-          
-          const progressoSalvo = { ...progresso };
-          if (!progressoSalvo[semanaSelecionada]) {
-              progressoSalvo[semanaSelecionada] = [];
-          }
-          progressoSalvo[semanaSelecionada].push(metaConcluida);
-          
-          setMetas(novasMetas);
-          setProgresso(progressoSalvo);
-          await AsyncStorage.setItem('metasSemanais', JSON.stringify(novasMetas));
-          await AsyncStorage.setItem('progresso', JSON.stringify(progressoSalvo));
-          
-          Alert.alert("Sucesso", "Meta marcada como concluída!");
-      }
+      await axios.put(`${API_BASE_URL}/metas/${metaId}`);
+      // Após marcar como concluída, simplesmente recarregamos os dados do backend.
+      // A lista será atualizada automaticamente por causa do filtro que adicionamos.
+      await carregarMetasDoBackend();
+      Alert.alert("Sucesso", "Meta marcada como concluída!");
     } catch (error) {
       console.error("Erro ao marcar meta como concluída na API:", error.response?.data || error.message);
       Alert.alert("Erro", "Não foi possível marcar a meta como concluída.");
@@ -195,6 +153,10 @@ export default function MetasSemanais() {
     const end = moment(date).endOf('week');
     return `${start.format('D [de] MMM')} - ${end.format('D [de] MMM')}`;
   };
+
+  // 🟢 CORREÇÃO APLICADA AQUI 🟢
+  // Criamos uma nova variável que contém apenas as metas pendentes da semana selecionada
+  const metasPendentes = (metas[semanaSelecionada] || []).filter(meta => !meta.concluido);
 
   return (
     <ImageBackground
@@ -209,7 +171,6 @@ export default function MetasSemanais() {
           contentContainerStyle={{ paddingBottom: width * 0.35 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Cabeçalho */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={24} color="#005067" />
@@ -220,12 +181,8 @@ export default function MetasSemanais() {
               style={styles.logo}
             />
           </View>
-          
           <Text style={styles.title}>Metas Semanais</Text>
-          
-          {/* Conteúdo Principal com Borda Arredondada */}
           <View style={styles.mainContent}>
-            {/* Seleção de Mês */}
             <View style={styles.monthSelector}>
               {gerarMeses().map((mes, index) => (
                 <TouchableOpacity
@@ -248,38 +205,29 @@ export default function MetasSemanais() {
                 </TouchableOpacity>
               ))}
             </View>
-
-            {/* Seleção de Semana com ScrollView Horizontal */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.weekSelectorContainer}
             >
-                {semanasDoMes.map((semana, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.weekItem,
-                        semanaSelecionada === semana.dataInicio && styles.weekItemSelected,
-                      ]}
-                      onPress={() => setSemanaSelecionada(semana.dataInicio)}
-                    >
-                      <Text style={[styles.weekText, semanaSelecionada === semana.dataInicio && styles.weekTextSelected]}>
-                        {semana.label}
-                      </Text>
-                    </TouchableOpacity>
-                ))}
+              {semanasDoMes.map((semana, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.weekItem,
+                    semanaSelecionada === semana.dataInicio && styles.weekItemSelected,
+                  ]}
+                  onPress={() => setSemanaSelecionada(semana.dataInicio)}
+                >
+                  <Text style={[styles.weekText, semanaSelecionada === semana.dataInicio && styles.weekTextSelected]}>
+                    {semana.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
-            
-            {/* Card de Adicionar Meta */}
             <View style={styles.metaCard}>
-              <Text style={styles.metaCardTitle}>
-                Metas para a semana:
-              </Text>
-              <Text style={styles.metaCardSubtitle}>
-                {getWeekRange(semanaSelecionada)}
-              </Text>
-              
+              <Text style={styles.metaCardTitle}>Metas para a semana:</Text>
+              <Text style={styles.metaCardSubtitle}>{getWeekRange(semanaSelecionada)}</Text>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
@@ -292,12 +240,12 @@ export default function MetasSemanais() {
                 </TouchableOpacity>
               </View>
 
-              { (metas[semanaSelecionada] || []).length > 0 ? (
-                (metas[semanaSelecionada] || []).map((meta) => (
+              {/* 🟢 CORREÇÃO APLICADA AQUI 🟢 */}
+              {/* Agora, o map percorre a lista de metas JÁ FILTRADA */}
+              {metasPendentes.length > 0 ? (
+                metasPendentes.map((meta) => (
                   <View key={meta.id} style={styles.metaItem}>
-                    <Text style={styles.metaText}>
-                      {meta.descricao}
-                    </Text>
+                    <Text style={styles.metaText}>{meta.descricao}</Text>
                     <TouchableOpacity
                       style={styles.completeButton}
                       onPress={() => marcarMetaComoConcluida(meta.id)}
@@ -312,8 +260,6 @@ export default function MetasSemanais() {
             </View>
           </View>
         </ScrollView>
-        
-        {/* TAB BAR */}
         <View style={styles.tabBar}>
           <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
             <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />

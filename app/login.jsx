@@ -115,7 +115,7 @@ export default function Login() {
 
           <TouchableOpacity style={styles.botao} onPress={handleLogin} disabled={loading}>
             {loading ? (
-              <ActivityIndicator color="#005067" />
+              <ActivityIndicator color="#ffffffff" />
             ) : (
               <Text style={styles.textBotao}>Entrar</Text>
             )}
