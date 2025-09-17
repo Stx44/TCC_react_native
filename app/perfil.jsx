@@ -32,6 +32,9 @@ export default function Perfil() {
         >
             <SafeAreaView style={styles.container}>
                 <View style={styles.topo}>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Ionicons name="arrow-back" size={24} color="#005067" />
+                    </TouchableOpacity>
                     <Text style={styles.welcomeText}>Olá Usuario</Text>
                 </View>
 
@@ -187,6 +190,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#005067",
+    textAlign: "center",
+    justifyContent: "center",
+    marginRight: "29%",
   },
 
 });
