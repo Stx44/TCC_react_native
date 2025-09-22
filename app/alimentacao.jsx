@@ -20,36 +20,19 @@ import {
 
 moment.locale('pt-br');
 
-function nivelIMC(valor) {
-  if (!valor) return '';
-  const imc = parseFloat(valor);
-  if (imc < 18.5) return 'Muito magro';
-  if (imc < 25) return 'Normal';
-  if (imc < 30) return 'Sobrepeso';
-  if (imc < 35) return 'Obesidade I';
-  if (imc < 40) return 'Obesidade II';
-  return 'Obesidade III';
-}
-
-export default function Calendario({ backgroundImage }) {
+export default function Alimentacao() {
   const [diasSemana, setDiasSemana] = useState([]);
   const [diaSelecionado, setDiaSelecionado] = useState(moment().format('YYYY-MM-DD'));
   const [eventos, setEventos] = useState({});
   const [novoEvento, setNovoEvento] = useState('');
 
-  // Estados para IMC
-  const [altura, setAltura] = useState('');
-  const [peso, setPeso] = useState('');
-  const [idade, setIdade] = useState('');
-  const [imc, setIMC] = useState(null);
-
   useEffect(() => {
-    const inicioSemana = moment().startOf('week').add(1, 'days');
+    const inicioSemana = moment().startOf('week');
     const dias = [];
     for (let i = 0; i < 7; i++) {
       const dia = moment(inicioSemana).add(i, 'days');
       dias.push({
-        label: dia.format('ddd'),
+        label: dia.format('ddd').toUpperCase(),
         dataCompleta: dia.format('YYYY-MM-DD'),
         numero: dia.format('D'),
       });
@@ -59,7 +42,7 @@ export default function Calendario({ backgroundImage }) {
 
   useEffect(() => {
     const carregarEventos = async () => {
-      const data = await AsyncStorage.getItem('eventosSemana');
+      const data = await AsyncStorage.getItem('alimentacaoSemana');
       if (data) setEventos(JSON.parse(data));
     };
     carregarEventos();
@@ -71,16 +54,8 @@ export default function Calendario({ backgroundImage }) {
     if (!novosEventos[diaSelecionado]) novosEventos[diaSelecionado] = [];
     novosEventos[diaSelecionado].push(novoEvento);
     setEventos(novosEventos);
-    await AsyncStorage.setItem('dietaSemana', JSON.stringify(novosEventos));
+    await AsyncStorage.setItem('alimentacaoSemana', JSON.stringify(novosEventos));
     setNovoEvento('');
-  };
-
-  // Função para calcular IMC
-  const calcularIMC = () => {
-    if (altura && peso) {
-      const valorIMC = (parseFloat(peso) / (parseFloat(altura) * parseFloat(altura))).toFixed(2);
-      setIMC(valorIMC);
-    }
   };
 
   return (
@@ -91,7 +66,6 @@ export default function Calendario({ backgroundImage }) {
     >
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Cabeçalho superior sticky */}
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.topo}>
           <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
@@ -105,65 +79,10 @@ export default function Calendario({ backgroundImage }) {
         </View>
       </SafeAreaView>
 
-      {/* Conteúdo rolável */}
       <ScrollView style={styles.scrollContainer} contentContainerStyle={{ paddingTop: 90, paddingBottom: 100 }}>
-        {/* Caixa IMC lado a lado com título cortando a borda */}
-        <View style={styles.containerIMC}>
-          <View style={styles.tituloIMCWrapper}>
-            <Text style={styles.tituloIMC}>IMC</Text>
-          </View>
-          <View style={styles.inputsIMC}>
-            <TextInput
-              placeholder='Altura'
-              style={styles.inserirTextoIMC}
-              keyboardType="numeric"
-              value={altura}
-              onChangeText={setAltura}
-            />
-            <TextInput
-              placeholder='Peso'
-              style={styles.inserirTextoIMC}
-              keyboardType="numeric"
-              value={peso}
-              onChangeText={setPeso}
-            />
-            <TextInput
-              placeholder='Idade'
-              style={styles.inserirTextoIMC}
-              keyboardType="numeric"
-              value={idade}
-              onChangeText={setIdade}
-            />
-            <TouchableOpacity style={styles.botaoCalcularIMC} onPress={calcularIMC}>
-              <Text style={styles.textoBotaoIMC}>Calcular IMC</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.resultadoIMC}>
-            {imc && (
-              <Text style={styles.textoResultadoIMC}>
-                Seu IMC: {imc}
-              </Text>
-            )}
-            {imc && (
-              <View style={styles.nivelIMCBox}>
-                <Text style={styles.nivelIMC}>{nivelIMC(imc)}</Text>
-              </View>
-            )}
-          </View>
-        </View>
 
-        <View>
-          <Image
-            source={require("../assets/images/divisoriaTabela.png")}
-            style={styles.divisoria}
-          />
-        </View>
-
-        {/* Calendário com título cortando a borda */}
-        <View style={styles.calendario1}>
-          <View style={styles.tituloCalendarioWrapper}>
-            <Text style={styles.tituloCalendario}>Calendário</Text>
-          </View>
+        <View style={styles.treinoContainer}>
+          <Text style={styles.treinoTitle}>Meu Calendário de Alimentação</Text>
           <FlatList
             horizontal
             data={diasSemana}
@@ -181,34 +100,33 @@ export default function Calendario({ backgroundImage }) {
                 <Text style={[styles.dayLabel, diaSelecionado === item.dataCompleta && { color: '#fff' }]}>
                   {item.label}
                 </Text>
-                <Text style={styles.dayNumber}>{item.numero}</Text>
+                <Text style={[styles.dayNumber, diaSelecionado === item.dataCompleta && { color: '#fff' }]}>
+                  {item.numero}
+                </Text>
               </TouchableOpacity>
             )}
           />
-
-          {/* Lista de eventos */}
           <View style={styles.eventsContainer}>
             <Text style={styles.title}>
               Eventos de {moment(diaSelecionado).format('dddd, D [de] MMMM')}
             </Text>
-
             {eventos[diaSelecionado]?.length ? (
               eventos[diaSelecionado].map((ev, i) => (
-                <Text key={i} style={styles.eventItem}>
-                  • {ev}
-                </Text>
+                <View key={i} style={styles.eventBox}>
+                  <Text style={styles.eventText}>{ev}</Text>
+                </View>
               ))
             ) : (
               <Text style={styles.noEvent}>
                 Nenhum evento para este dia
               </Text>
             )}
-
             <TextInput
-              style={styles.input}
+              style={styles.inputEvento}
               placeholder="Novo evento"
               value={novoEvento}
               onChangeText={setNovoEvento}
+              placeholderTextColor="#999"
             />
             <TouchableOpacity style={styles.Button} onPress={salvarEvento}>
               <Text style={styles.textoBtn}>Adicionar Evento</Text>
@@ -217,7 +135,6 @@ export default function Calendario({ backgroundImage }) {
         </View>
       </ScrollView>
 
-      {/* TAB BAR */}
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
           <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
@@ -271,10 +188,27 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
+  treinoContainer: {
+    borderWidth: 2,
+    borderColor: '#005067',
+    borderRadius: 15,
+    padding: '4%',
+    marginTop: 100,
+    marginBottom: '5%',
+    width: '90%',
+    alignSelf: 'center',
+  },
+  treinoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#005067',
+    marginBottom: '3%',
+    textAlign: 'center',
+  },
   weekContainer: {
-    marginTop: 10,
     paddingVertical: 15,
     paddingHorizontal: 10,
+    alignSelf: 'center',
   },
   dayItem: {
     width: 50,
@@ -295,7 +229,7 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#000',
   },
   eventsContainer: {
     flex: 1,
@@ -304,30 +238,44 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#005067',
+    marginBottom: '3%',
+  },
+  eventBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     marginBottom: 10,
   },
-  eventItem: {
+  eventText: {
     fontSize: 16,
-    marginBottom: 5,
+    color: '#333',
+    fontWeight: '500',
   },
   noEvent: {
     fontSize: 14,
     fontStyle: 'italic',
     color: '#777',
   },
-  input: {
+  inputEvento: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 8,
+    padding: '3%',
     borderRadius: 5,
-    marginVertical: 10,
+    marginVertical: '3%',
   },
   Button: {
     backgroundColor: '#005067',
-    padding: 10,
+    padding: '3%',
     borderRadius: 5,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: '5%',
   },
   textoBtn: {
     color: 'white',
@@ -357,148 +305,4 @@ const styles = StyleSheet.create({
     height: 32,
     resizeMode: 'contain',
   },
-  containerIMC: {
-    marginTop: "18%",
-    width: '90%',
-    alignSelf: 'center',
-    borderColor: "#005067",
-    borderWidth: 2,
-    borderRadius: 33,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    minHeight: 160,
-    position: 'relative',
-  },
-  tituloIMCWrapper: {
-    position: 'absolute',
-    top: -18,
-    left: '61%', // centraliza horizontalmente
-    transform: [{ translateX: -60 }], // metade da largura aproximada do título
-    backgroundColor: '#fff',
-    paddingHorizontal: 18,
-    paddingVertical: 2,
-    borderRadius: 15,
-    // Remova as bordas:
-    // borderWidth: 2,
-    // borderColor: '#005067',
-    zIndex: 2,
-    alignItems: 'center',
-  },
-  tituloIMC: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#005067',
-    textAlign: 'center',
-  },
-  inputsIMC: {
-    width: '56%',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-  },
-  resultadoIMC: {
-    marginTop: "19%",
-    marginRight: "3%",
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 7,
-    borderWidth: 1,
-    borderColor: '#005067',
-    borderRadius: 10,
-  },
-  inserirTextoIMC: {
-    marginTop: 2,
-    color: 'black',
-    borderWidth: 1.5,
-    borderColor: '#005067',
-    borderRadius: 20,
-    marginVertical: 10,
-    width: '90%',
-    textAlign: 'left',
-  },
-  botaoCalcularIMC: {
-    width: '90%',
-    backgroundColor: '#005067',
-    padding: 10,
-    borderRadius: 18,
-    alignItems: 'center',
-    marginTop: 5,
-  },
-  textoBotaoIMC: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  textoResultadoIMC: {
-    fontSize: 19,
-    fontWeight: 'bold',
-    color: '#005067',
-    textAlign: 'center',
-  },
-  nivelIMCBox: {
-    alignSelf: 'center',
-    marginTop: "2%",
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#005067',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    minWidth: 80,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  nivelIMC: {
-    fontSize: 15,
-    color: '#005067',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  calendario1: {
-    marginTop: "5%",
-    borderWidth: 2,
-    borderRadius: 30,
-    borderColor: "#005067",
-    width: "90%",
-    alignItems: 'center',
-    alignSelf: "center",
-    flex: 1,
-    position: 'relative',
-    paddingTop: 30,
-    paddingBottom: 18,
-    paddingHorizontal: 18,
-    backgroundColor: '#fff',
-  },
-  tituloCalendarioWrapper: {
-    position: 'absolute',
-    top: -18,
-    left: '57%', // centraliza horizontalmente
-    transform: [{ translateX: -60 }], // metade da largura aproximada do título
-    backgroundColor: '#fff',
-    paddingHorizontal: 18,
-    paddingVertical: 2,
-    borderRadius: 15,
-    // Remova as bordas:
-    // borderWidth: 2,
-    // borderColor: '#005067',
-    zIndex: 2,
-    alignItems: 'center',
-  },
-  tituloCalendario: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#005067',
-    textAlign: 'center',
-  },
-  divisoria: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginTop: "5%",
-    marginBottom: "5%",
-  }
 });

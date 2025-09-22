@@ -15,6 +15,7 @@ import {
   View,
   ActivityIndicator
 } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import { BarChart } from 'react-native-chart-kit';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
@@ -28,9 +29,10 @@ const chartConfig = {
   backgroundColor: '#ffffff',
   backgroundGradientFrom: '#ffffff',
   backgroundGradientTo: '#ffffff',
-  decimalPlaces: 1,
-  color: (opacity = 1) => `rgba(0, 80, 103, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
+  decimalPlaces: 0,
+  // CORRIGIDO: Opacidade fixada em 1
+  color: () => `rgba(0, 80, 103, 1)`, 
+  labelColor: (opacity = 0) => `rgba(51, 51, 51, ${opacity})`,
   style: {
     borderRadius: 16,
   },
@@ -39,6 +41,17 @@ const chartConfig = {
     strokeWidth: '2',
     stroke: '#005067',
   },
+  propsForBackgroundLines: {
+    stroke: '#e5e5e5',
+    strokeWidth: 1,
+  },
+  barPercentage: 0.8,
+  barRadius: 8,
+  LineChart: {
+    bezier: true,
+    color: "#005067",
+  }
+
 };
 
 export default function AcompanharProgresso() {
@@ -59,13 +72,11 @@ export default function AcompanharProgresso() {
       setLoading(true);
       const [rankingResponse, evolucaoResponse, metasResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/dashboard/ranking`),
-        // ✅ CHAMADA CORRETA DA URL
         axios.get(`${API_BASE_URL}/dashboard/evolucao-peso/${usuarioId}`),
         axios.get(`${API_BASE_URL}/metas/${usuarioId}`)
       ]);
       
       setRanking(rankingResponse.data || []);
-      
       setEvolucaoData(evolucaoResponse.data.evolucao_peso || { labels: [], datasets: [{ data: [] }] });
 
       const metasBruto = metasResponse.data.metas || [];
@@ -86,7 +97,7 @@ export default function AcompanharProgresso() {
         setMetasData({
             labels: Object.keys(metasPorSemana),
             datasets: [{
-                data: Object.values(metasPorSemana).map(semana => semana.concluidas)
+              data: Object.values(metasPorSemana).map(semana => semana.concluidas)
             }]
         });
       }
@@ -160,7 +171,7 @@ export default function AcompanharProgresso() {
           </View>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Evolução Metas Concluídas</Text>
-             {metasData.labels.length > 0 ? (
+              {metasData.labels.length > 0 ? (
               <BarChart
                 data={metasData}
                 width={width * 0.75}
@@ -189,7 +200,6 @@ export default function AcompanharProgresso() {
   );
 }
 
-// ... SEUS ESTILOS CONTINUAM AQUI ...
 const styles = StyleSheet.create({
     background: {
         flex: 1,
