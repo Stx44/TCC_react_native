@@ -33,7 +33,7 @@ export default function Perfil() {
                 <View style={styles.botoes}>
                     <TouchableOpacity style={styles.botaoMetas}>
                         <Image
-                          source={require("../assets/images/target.png")}
+                          source={require("../assets/images/icone_conta.png")}
                           style={styles.icone}
                         />
                         <View style={styles.textos}>
@@ -44,7 +44,7 @@ export default function Perfil() {
 
                     <TouchableOpacity style={styles.botaoMetas}>
                         <Image
-                          source={require("../assets/images/target.png")}
+                          source={require("../assets/images/icone_sino.png")}
                           style={styles.icone}
                         />
                         <View style={styles.textos}>
@@ -55,7 +55,7 @@ export default function Perfil() {
 
                     <TouchableOpacity style={styles.botaoLogout}>
                         <Image
-                          source={require("../assets/images/target.png")}
+                          source={require("../assets/images/icone_logout.png")}
                           style={styles.icone}
                         />
                         <View style={styles.textos}>
@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   icone: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     marginRight: 12,
     resizeMode: "contain",
   },
