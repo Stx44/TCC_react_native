@@ -1,25 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { router } from 'expo-router';
-import moment from 'moment';
 import 'moment/locale/pt-br';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
-  Alert,
   Dimensions,
   Image,
   ImageBackground,
   SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import { useAuth } from './AuthContext';
 
 const { width } = Dimensions.get('window');
 

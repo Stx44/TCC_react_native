@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,21 +14,18 @@ import {
   View,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import axios from "axios";
-// ⚠️ Importa o hook para acessar o contexto de autenticação
+// Importa o hook para acessar o contexto de autenticação
 import { useAuth } from './AuthContext';
 
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
-// ⚠️ A função de login foi movida para dentro do componente
-// para que ela possa acessar o 'useAuth'
 export default function Login() {
   const [oculto, setOculto] = useState(true);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  // ⚠️ Acessa a função 'login' do contexto
+  // Acessa a função 'login' do contexto
   const { login } = useAuth(); 
 
   const handleLogin = async () => {
@@ -54,11 +52,14 @@ export default function Login() {
       });
 
       if (response.data.sucesso) {
-        // ⚠️ AQUI ESTÁ A MUDANÇA PRINCIPAL
         // Salva o ID do usuário no contexto global
         login(response.data.usuario.id.toString());
+        
         Alert.alert("Sucesso", "Usuário logado com sucesso!");
-        router.replace("/homepage");
+        
+        // ✅ CORREÇÃO AQUI: Usando a rota '/(tabs)/' ao invés do caminho do arquivo.
+        router.replace("/(tabs)/");
+
       } else {
         Alert.alert("Erro", "Credenciais inválidas.");
       }
@@ -201,12 +202,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   esqueciSenha: {
+    marginTop: "4%",
+    // Estilos de texto aplicados diretamente no componente Text
+  },
+  esqTxt: {
     color: "#ffffffff",
     fontSize: 16,
-    marginTop: "4%",
-    textAlign: "right",
     fontWeight: "bold",
     textDecorationLine: "underline",
-    marginRight: "11%"
   },
 });

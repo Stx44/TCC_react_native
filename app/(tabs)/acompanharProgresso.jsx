@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { BarChart } from 'react-native-chart-kit';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext'; // ⚠️ CORREÇÃO (assumindo que está em app/AuthContext.js)
 import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/pt-br';
@@ -30,9 +30,8 @@ const chartConfig = {
   backgroundGradientFrom: '#ffffff',
   backgroundGradientTo: '#ffffff',
   decimalPlaces: 0,
-  // CORRIGIDO: Opacidade fixada em 1
   color: () => `rgba(0, 80, 103, 1)`, 
-  labelColor: (opacity = 0) => `rgba(51, 51, 51, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
   style: {
     borderRadius: 16,
   },
@@ -47,11 +46,6 @@ const chartConfig = {
   },
   barPercentage: 0.8,
   barRadius: 8,
-  LineChart: {
-    bezier: true,
-    color: "#005067",
-  }
-
 };
 
 export default function AcompanharProgresso() {
@@ -121,7 +115,7 @@ export default function AcompanharProgresso() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/paredebranca.png")}
+      source={require("../../assets/images/paredebranca.png")} // ⚠️ CORREÇÃO
       style={styles.background}
       resizeMode="cover"
     >
@@ -134,7 +128,7 @@ export default function AcompanharProgresso() {
               <Text style={styles.txtVoltar}>Voltar</Text>
             </TouchableOpacity>
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/images/logo.png")} // ⚠️ CORREÇÃO
               style={styles.logoSuperior}
             />
           </View>
@@ -146,7 +140,7 @@ export default function AcompanharProgresso() {
                 ranking.map((item, index) => (
                   <View key={index} style={styles.rankingItem}>
                     <Text style={styles.rankingPosition}>{index + 1}.</Text>
-                    <Image source={require("../assets/images/perfil_teal.png")} style={styles.rankingImage}/>
+                    <Image source={require("../../assets/images/perfil_teal.png")} style={styles.rankingImage}/> // ⚠️ CORREÇÃO
                     <Text style={styles.rankingName}>{item.nome}</Text>
                     <Text style={styles.rankingPoints}>{item.pontos} Pts</Text>
                   </View>
@@ -185,21 +179,11 @@ export default function AcompanharProgresso() {
           </View>
         </ScrollView>
       </SafeAreaView>
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
-          <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
-          <Image source={require("../assets/images/home_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
-          <Image source={require("../assets/images/dumbbell_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-      </View>
     </ImageBackground>
   );
 }
 
+// ... (seus estilos continuam aqui sem alteração)
 const styles = StyleSheet.create({
     background: {
         flex: 1,

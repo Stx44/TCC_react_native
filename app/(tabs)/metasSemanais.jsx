@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { router } from 'expo-router';
 import moment from 'moment';
@@ -19,7 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext'; // ⚠️ CORREÇÃO
 
 const { width } = Dimensions.get('window');
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
@@ -48,7 +47,6 @@ export default function MetasSemanais() {
         if (!metasFormatadas[data_semana]) {
           metasFormatadas[data_semana] = [];
         }
-        // ✅ Mantemos todas as metas no estado inicial para outros cálculos, se necessário
         metasFormatadas[data_semana].push({
           id: item.id,
           descricao: item.descricao,
@@ -122,7 +120,6 @@ export default function MetasSemanais() {
           descricao: novaMeta,
           data_agendada: semanaSelecionada,
         });
-        // Após salvar, recarrega as metas para garantir que a lista está atualizada
         await carregarMetasDoBackend();
         setNovaMeta('');
         Alert.alert("Sucesso", "Meta salva com sucesso!");
@@ -138,8 +135,6 @@ export default function MetasSemanais() {
   const marcarMetaComoConcluida = async (metaId) => {
     try {
       await axios.put(`${API_BASE_URL}/metas/${metaId}`);
-      // Após marcar como concluída, simplesmente recarregamos os dados do backend.
-      // A lista será atualizada automaticamente por causa do filtro que adicionamos.
       await carregarMetasDoBackend();
       Alert.alert("Sucesso", "Meta marcada como concluída!");
     } catch (error) {
@@ -154,13 +149,11 @@ export default function MetasSemanais() {
     return `${start.format('D [de] MMM')} - ${end.format('D [de] MMM')}`;
   };
 
-  // 🟢 CORREÇÃO APLICADA AQUI 🟢
-  // Criamos uma nova variável que contém apenas as metas pendentes da semana selecionada
   const metasPendentes = (metas[semanaSelecionada] || []).filter(meta => !meta.concluido);
 
   return (
     <ImageBackground
-      source={require('../assets/images/paredebranca.png')}
+      source={require('../../assets/images/paredebranca.png')} // ⚠️ CORREÇÃO
       style={styles.background}
       resizeMode="cover"
     >
@@ -177,7 +170,7 @@ export default function MetasSemanais() {
               <Text style={styles.backButtonText}>Voltar</Text>
             </TouchableOpacity>
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/images/logo.png")} // ⚠️ CORREÇÃO
               style={styles.logo}
             />
           </View>
@@ -239,9 +232,6 @@ export default function MetasSemanais() {
                   <Text style={styles.saveButtonText}>Salvar</Text>
                 </TouchableOpacity>
               </View>
-
-              {/* 🟢 CORREÇÃO APLICADA AQUI 🟢 */}
-              {/* Agora, o map percorre a lista de metas JÁ FILTRADA */}
               {metasPendentes.length > 0 ? (
                 metasPendentes.map((meta) => (
                   <View key={meta.id} style={styles.metaItem}>
@@ -260,21 +250,11 @@ export default function MetasSemanais() {
             </View>
           </View>
         </ScrollView>
-        <View style={styles.tabBar}>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
-            <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
-            <Image source={require("../assets/images/home_teal.png")} style={styles.tabIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
-            <Image source={require("../assets/images/dumbbell_teal.png")} style={styles.tabIcon} />
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
     </ImageBackground>
   );
 }
+
 
 const styles = StyleSheet.create({
   background: {

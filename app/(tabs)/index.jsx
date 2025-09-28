@@ -14,19 +14,19 @@ export default function HomePage() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/paredebranca.png")}
+      source={require("../../assets/images/paredebranca.png")}
       style={styles.background}
     >
       <SafeAreaView style={styles.container}>
         {/* TOPO COM LOGO E PERFIL */}
         <View style={styles.topo}>
           <Image
-            source={require("../assets/images/logo.png")}
+            source={require("../../assets/images/logo.png")}
             style={styles.logoSuperior}
           />
           <TouchableOpacity onPress={() => router.push({ pathname: "/perfil", params: { usuarioId } })}>
             <Image
-              source={require("../assets/images/perfil_teal.png")}
+              source={require("../../assets/images/perfil_teal.png")}
               style={styles.perfil}
             />
           </TouchableOpacity>
@@ -36,7 +36,7 @@ export default function HomePage() {
         <View style={styles.areaBotao}>
           <TouchableOpacity style={styles.botaoMetas} onPress={() => router.push("/metasSemanais")}>
             <Image
-              source={require("../assets/images/target.png")}
+              source={require("../../assets/images/target.png")}
               style={styles.icone}
             />
             <View style={styles.textos}>
@@ -50,7 +50,7 @@ export default function HomePage() {
             style={styles.botaoMetas} 
             onPress={() => router.push({ pathname: "/acompanharProgresso", params: { usuarioId } })}>
             <Image
-              source={require("../assets/images/progresso.png")}
+              source={require("../../assets/images/progresso.png")}
               style={styles.icone}
             />
             <View style={styles.textos}>
@@ -60,27 +60,6 @@ export default function HomePage() {
           </TouchableOpacity>
         </View>
 
-        {/* TAB BAR */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
-            <Image
-              source={require("../assets/images/apple_teal.png")}
-              style={styles.tabIcon}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image
-              source={require("../assets/images/home_teal.png")}
-              style={styles.tabIcon}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
-            <Image
-              source={require("../assets/images/dumbbell_teal.png") }
-              style={styles.tabIcon}
-            />
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
     </ImageBackground>
   );

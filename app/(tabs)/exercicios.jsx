@@ -4,7 +4,7 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import React, { useEffect, useState, useRef } from 'react'; // Importado useRef
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -20,7 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext'; // ⚠️ CORREÇÃO
 
 moment.locale('pt-br');
 
@@ -39,19 +39,16 @@ export default function Exercicios() {
   const [eventos, setEventos] = useState({});
   const [novoEvento, setNovoEvento] = useState('');
   
-  // ✅ Lógica para o salvamento automático
   const timeoutId = useRef(null);
 
   const handlePesoChange = (novoPeso) => {
     setPeso(novoPeso);
-    // Cancela o timer anterior se o usuário ainda estiver digitando
     if (timeoutId.current) {
         clearTimeout(timeoutId.current);
     }
-    // Cria um novo timer para salvar o peso após 1.5 segundos
     timeoutId.current = setTimeout(() => {
         salvarPesoAutomaticamente(novoPeso);
-    }, 1500); // 1.5 segundos
+    }, 1500);
   };
 
   const salvarPesoAutomaticamente = async (pesoParaSalvar) => {
@@ -63,18 +60,14 @@ export default function Exercicios() {
                 usuario_id: usuarioId,
                 peso: p,
             });
-            // Opcional: mostrar um feedback sutil de que salvou, mas sem um Alert para não atrapalhar.
             console.log("Peso salvo com sucesso!");
         } catch (error) {
             console.error("Erro ao salvar peso automaticamente:", error.response?.data || error.message);
-            // Opcional: mostrar um alerta se falhar.
-            // Alert.alert("Erro", "Não foi possível salvar seu peso.");
         }
     }
   };
 
   useEffect(() => {
-    // Limpa o timer quando o componente é desmontado
     return () => {
         if (timeoutId.current) {
             clearTimeout(timeoutId.current);
@@ -174,7 +167,7 @@ export default function Exercicios() {
 
   return (
     <ImageBackground
-      source={require('../assets/images/paredebranca.png')}
+      source={require('../../assets/images/paredebranca.png')} // ⚠️ CORREÇÃO
       style={styles.background}
       resizeMode="cover"
     >
@@ -191,7 +184,7 @@ export default function Exercicios() {
               <Text style={styles.txtVoltar}>Voltar</Text>
             </TouchableOpacity>
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/images/logo.png")} // ⚠️ CORREÇÃO
               style={styles.logoSuperior}
             />
           </View>
@@ -209,7 +202,6 @@ export default function Exercicios() {
                   <TextInput
                     style={styles.input}
                     value={peso}
-                    // ✅ Alterado para usar a nova função
                     onChangeText={handlePesoChange}
                     placeholder='Peso atual (kg)'
                     placeholderTextColor={"#999"}
@@ -234,7 +226,7 @@ export default function Exercicios() {
           </View>
           <View style={styles.divisoriaContainer}>
             <Image
-              source={require("../assets/images/divisoriaTabela.png")}
+              source={require("../../assets/images/divisoriaTabela.png")} // ⚠️ CORREÇÃO
               style={styles.divisoria}
             />
           </View>
@@ -292,23 +284,11 @@ export default function Exercicios() {
             </View>
           </View>
         </ScrollView>
-        <View style={styles.tabBar}>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
-            <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
-            <Image source={require("../assets/images/home_teal.png")} style={styles.tabIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
-            <Image source={require("../assets/images/dumbbell_teal.png")} style={styles.tabIcon} />
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
     </ImageBackground>
   );
 }
 
-// ... SEUS ESTILOS CONTINUAM AQUI ...
 const styles = StyleSheet.create({
     background: {
         flex: 1,

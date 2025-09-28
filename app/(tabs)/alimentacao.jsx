@@ -60,7 +60,7 @@ export default function Alimentacao() {
 
   return (
     <ImageBackground
-      source={require('../assets/images/paredebranca.png')}
+      source={require('../../assets/images/paredebranca.png')} // ⚠️ CORREÇÃO
       style={styles.background}
       resizeMode="cover"
     >
@@ -73,7 +73,7 @@ export default function Alimentacao() {
             <Text style={styles.txtVoltar}>Voltar</Text>
           </TouchableOpacity>
           <Image
-            source={require("../assets/images/logo.png")}
+            source={require("../../assets/images/logo.png")} // ⚠️ CORREÇÃO
             style={styles.logoSuperior}
           />
         </View>
@@ -134,18 +134,6 @@ export default function Alimentacao() {
           </View>
         </View>
       </ScrollView>
-
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/alimentacao")}>
-          <Image source={require("../assets/images/apple_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/homepage")}>
-          <Image source={require("../assets/images/home_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push("/exercicios")}>
-          <Image source={require("../assets/images/dumbbell_teal.png")} style={styles.tabIcon} />
-        </TouchableOpacity>
-      </View>
     </ImageBackground>
   );
 }
