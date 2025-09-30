@@ -1,9 +1,10 @@
+// login.jsx
+
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ImageBackground,
   SafeAreaView,
@@ -14,6 +15,9 @@ import {
   View,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+
+// 🚨 IMPORT NECESSÁRIO: Importa a biblioteca Toast
+import Toast from 'react-native-toast-message'; 
 // Importa o hook para acessar o contexto de autenticação
 import { useAuth } from './AuthContext';
 
@@ -33,17 +37,27 @@ export default function Login() {
     const emailLimpo = email.trim().toLowerCase();
     const senhaLimpa = senha.trim();
 
+    // --- Validação de campos (Usando Toast de Pílula) ---
     if (!emailLimpo || !senhaLimpa) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      Toast.show({
+        type: 'pillError',
+        text1: 'Atenção!',
+        text2: 'Preencha todos os campos.',
+      });
       setLoading(false);
       return;
     }
 
     if (!emailLimpo.includes("@") || !emailLimpo.includes(".")) {
-      Alert.alert("Erro", "Email inválido.");
+      Toast.show({
+        type: 'pillError',
+        text1: 'Atenção!',
+        text2: 'Email inválido.',
+      });
       setLoading(false);
       return;
     }
+    // --- Fim da Validação de campos ---
 
     try {
       const response = await axios.post(`${API_BASE_URL}/login`, {
@@ -55,17 +69,38 @@ export default function Login() {
         // Salva o ID do usuário no contexto global
         login(response.data.usuario.id.toString());
         
-        Alert.alert("Sucesso", "Usuário logado com sucesso!");
+        // 🚨 TOAST DE SUCESSO (Pílula) 🚨
+        Toast.show({
+          type: 'pillSuccess',
+          text1: 'Sucesso!',
+          text2: 'Usuário logado com sucesso. Redirecionando...',
+          topOffset: 60,
+        });
         
-        // ✅ CORREÇÃO AQUI: Usando a rota '/(tabs)/' ao invés do caminho do arquivo.
-        router.replace("/(tabs)/");
+        // Aguarda um pouco para o usuário ver o toast antes de navegar
+        setTimeout(() => {
+          router.replace("/(tabs)/");
+        }, 800);
 
       } else {
-        Alert.alert("Erro", "Credenciais inválidas.");
+        // Erro de credenciais inválidas (Resposta da API)
+        Toast.show({
+          type: 'pillError',
+          text1: 'Erro de Login',
+          text2: 'Credenciais inválidas. Verifique seu email e senha.',
+          topOffset: 65,
+        });
       }
     } catch (error) {
-      Alert.alert("Erro", error.message || "Erro ao fazer login.");
+      // Erro de rede ou servidor (Bloco catch)
+      Toast.show({
+        type: 'pillError',
+        text1: 'Falha na Conexão',
+        text2: error.message || "Erro ao fazer login. Servidor inacessível.",
+        topOffset: 65,
+      });
     } finally {
+      // Garante que o indicador de loading pare
       setLoading(false);
     }
   };

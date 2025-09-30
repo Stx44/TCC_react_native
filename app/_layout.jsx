@@ -1,9 +1,16 @@
+// RootLayout.jsx
+
+import React from 'react';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+
+// ⬇ Importa o Toast e a configuração customizada
+import Toast from 'react-native-toast-message';
+import { toastConfig } from './toastConfig';
 
 // ⬇ Este import garante que possamos aplicar o estilo global
 import { setCustomText } from 'react-native-global-props';
@@ -20,7 +27,7 @@ export default function RootLayout() {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -34,12 +41,26 @@ export default function RootLayout() {
   });
 
   return (
-    // ⚠️ Envolva o ThemeProvider e a navegação com o AuthProvider
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        
+        {/* 🚨 Adiciona o componente Toast com a configuração de pílula 🚨 */}
+        <Toast 
+          config={toastConfig}
+          position="top" // Toasts geralmente ficam melhor no topo
+        />
+        
       </ThemeProvider>
     </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center'
+    }
+});
