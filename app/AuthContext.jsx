@@ -5,30 +5,39 @@ import React, {
   useEffect 
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// 🚨 CORREÇÃO: Importando do módulo 'legacy' para corrigir o erro de deprecated
+import * as FileSystem from 'expo-file-system/legacy'; 
+import axios from 'axios'; 
+import { Alert } from 'react-native'; 
 
 const AuthContext = createContext({});
 
+const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
+
 export const AuthProvider = ({ children }) => {
+  // Guarda o objeto completo do usuário {id, nome, email, foto_perfil}
   const [usuario, setUsuario] = useState(null);
+  // Guarda a URI local ou a string Base64 da foto de perfil
   const [perfilImage, setPerfilImage] = useState(null);
 
-  // --- 1. Carregar dados ao iniciar o App ---
+  // --- 1. Carregar dados e foto ao iniciar o App ---
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Primeiro carrega o usuário
         const savedUserJson = await AsyncStorage.getItem('user_data');
         
         if (savedUserJson) {
           const savedUser = JSON.parse(savedUserJson);
           setUsuario(savedUser);
 
-          // Se tem usuário, carrega a foto DELE (usando o ID na chave)
-          if (savedUser.id) {
-            const savedImage = await AsyncStorage.getItem(`user_profile_image_${savedUser.id}`);
-            if (savedImage) {
-              setPerfilImage(savedImage);
-            }
+          // Tenta carregar a foto do banco (se veio no objeto usuário)
+          if (savedUser.foto_perfil) {
+             setPerfilImage(savedUser.foto_perfil);
+          } 
+          // Se não, tenta carregar do cache local (com o ID na chave)
+          else if (savedUser.id) {
+            const localImage = await AsyncStorage.getItem(`user_profile_image_${savedUser.id}`);
+            if (localImage) setPerfilImage(localImage);
           }
         }
       } catch (error) {
@@ -43,14 +52,14 @@ export const AuthProvider = ({ children }) => {
     setUsuario(dadosUsuario);
     await AsyncStorage.setItem('user_data', JSON.stringify(dadosUsuario));
 
-    // Ao logar, busca a foto específica deste usuário imediatamente
+    // Busca a foto específica deste usuário ao logar
     if (dadosUsuario.id) {
       try {
-        const savedImage = await AsyncStorage.getItem(`user_profile_image_${dadosUsuario.id}`);
-        // Se achou foto salva, usa ela. Se não, limpa o estado (null) para usar a padrão
-        setPerfilImage(savedImage || null);
+        const localImage = await AsyncStorage.getItem(`user_profile_image_${dadosUsuario.id}`);
+        // Se achou foto salva localmente, usa. Se não, usa a foto do banco (dadosUsuario.foto_perfil)
+        setPerfilImage(localImage || dadosUsuario.foto_perfil || null);
       } catch (e) {
-        setPerfilImage(null);
+        setPerfilImage(dadosUsuario.foto_perfil || null);
       }
     }
   };
@@ -58,20 +67,56 @@ export const AuthProvider = ({ children }) => {
   // --- 3. Função de Logout ---
   const logout = async () => {
     setUsuario(null);
-    setPerfilImage(null); // Limpa a foto da memória para não aparecer pro próximo
+    setPerfilImage(null); 
     await AsyncStorage.removeItem('user_data');
   };
 
-  // --- 4. Atualizar Foto ---
+  // --- 4. Atualizar Foto (Salva Localmente e no Banco de Dados) ---
   const atualizarFoto = async (uri) => {
-    if (!usuario?.id) return; // Segurança: só salva se tiver usuário logado
+    if (!usuario?.id) return;
+
+    // Atualiza visualmente logo (otimista)
+    setPerfilImage(uri);
+    await AsyncStorage.setItem(`user_profile_image_${usuario.id}`, uri);
 
     try {
-      setPerfilImage(uri);
-      // Salva com o ID no nome da chave
-      await AsyncStorage.setItem(`user_profile_image_${usuario.id}`, uri);
+      console.log("Iniciando conversão para Base64...");
+      
+      // ✅ CORREÇÃO APLICADA AQUI: Chama o readAsStringAsync do módulo /legacy
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+      const fotoEmTexto = `data:image/jpeg;base64,${base64}`;
+
+      console.log("Enviando para API...");
+      
+      // Envia para o Banco de Dados
+      const response = await axios.put(`${API_BASE_URL}/usuarios/${usuario.id}`, {
+        foto_perfil: fotoEmTexto
+      });
+
+      console.log("Sucesso na API:", response.status);
+
+      // Atualiza o objeto usuário local com o novo Base64
+      const novoUsuario = { ...usuario, foto_perfil: fotoEmTexto };
+      setUsuario(novoUsuario);
+      await AsyncStorage.setItem('user_data', JSON.stringify(novoUsuario));
+      
+      Alert.alert("Sucesso", "Foto salva na nuvem!");
+
     } catch (error) {
-      console.log("Erro ao salvar imagem:", error);
+      console.log("Erro detalhado:", error);
+      
+      // Alertas de erro para debug (importante para saber o que a API respondeu)
+      if (error.response) {
+        Alert.alert("Erro na API", `Status: ${error.response.status}\nMsg: ${JSON.stringify(error.response.data)}`);
+      } else if (error.request) {
+        Alert.alert("Erro de Conexão", "Não foi possível contactar o servidor. Verifique o deploy da API.");
+      } else {
+        Alert.alert("Erro Interno", error.message);
+      }
+      
+      // Em caso de falha no salvamento, revertemos a foto visual para a anterior
+      const previousImage = await AsyncStorage.getItem(`user_profile_image_${usuario.id}`);
+      setPerfilImage(previousImage || usuario.foto_perfil || null);
     }
   };
 

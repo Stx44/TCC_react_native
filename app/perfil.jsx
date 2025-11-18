@@ -106,7 +106,7 @@ export default function Perfil() {
                     {/* Botão: Dados da Conta */}
                     <TouchableOpacity 
                         style={styles.botaoPill} 
-                        onPress={() => console.log("Dados")}
+                        onPress={() => router.push('/MinhaConta')}
                     >
                         <View style={styles.leftContent}>
                             <Image
