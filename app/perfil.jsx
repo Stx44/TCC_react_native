@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import 'moment/locale/pt-br';
 import React from 'react';
 import {
   Dimensions,
@@ -10,12 +9,50 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Alert
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from './AuthContext';
 
 const { width } = Dimensions.get('window');
 
 export default function Perfil() {
+    const { 
+        usuario, 
+        perfilImage, 
+        atualizarFoto, 
+        logout 
+    } = useAuth();
+
+    // --- Escolher Imagem ---
+    const pickImage = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(
+                'Permissão necessária', 
+                'Precisamos de acesso à galeria.'
+            );
+            return;
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+        });
+
+        if (!result.canceled) {
+            atualizarFoto(result.assets[0].uri);
+        }
+    };
+
+    // --- Logout ---
+    const handleLogout = () => {
+        logout();
+        router.replace('/login');
+    };
 
     return (
         <ImageBackground
@@ -23,46 +60,111 @@ export default function Perfil() {
             style={styles.background}
         >
             <SafeAreaView style={styles.container}>
-                <View style={styles.topo}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#005067" />
+                
+                {/* --- TOPO --- */}
+                <View style={styles.headerArea}>
+                    <TouchableOpacity 
+                        onPress={() => router.back()} 
+                        style={styles.closeButton}
+                    >
+                        <Ionicons 
+                            name="close" 
+                            size={30} 
+                            color="#888" 
+                        />
                     </TouchableOpacity>
-                    <Text style={styles.welcomeText}>Olá Usuario</Text>
+
+                    <View style={styles.profileInfo}>
+                        <TouchableOpacity onPress={pickImage}>
+                            <Image
+                                source={
+                                    perfilImage 
+                                    ? { uri: perfilImage } 
+                                    : require("../assets/images/perfil_teal.png")
+                                }
+                                style={styles.fotoPerfilGrande}
+                            />
+                            <View style={styles.editIconBadge}>
+                                <Ionicons 
+                                    name="camera" 
+                                    size={14} 
+                                    color="#fff" 
+                                />
+                            </View>
+                        </TouchableOpacity>
+                        
+                        {/* --- NOME DO USUÁRIO --- */}
+                        <Text style={styles.nomeUsuario}>
+                            {usuario?.nome ? usuario.nome : "Usuário"}
+                        </Text>
+                    </View>
                 </View>
 
-                <View style={styles.botoes}>
-                    <TouchableOpacity style={styles.botaoMetas}>
-                        <Image
-                          source={require("../assets/images/icone_conta.png")}
-                          style={styles.icone}
-                        />
-                        <View style={styles.textos}>
-                          <Text style={styles.titulo}>Dados da conta</Text>
-                          <Text style={styles.descricao}>minhas informações da conta</Text>
+                {/* --- MENU --- */}
+                <View style={styles.areaBotoes}>
+                    
+                    {/* Botão: Dados da Conta */}
+                    <TouchableOpacity 
+                        style={styles.botaoPill} 
+                        onPress={() => console.log("Dados")}
+                    >
+                        <View style={styles.leftContent}>
+                            <Image
+                                source={require("../assets/images/icone_conta.png")}
+                                style={styles.iconeMenu}
+                            />
+                            <View>
+                                <Text style={styles.tituloBotao}>
+                                    Dados da conta
+                                </Text>
+                                <Text style={styles.descBotao}>
+                                    Minhas informações da conta
+                                </Text>
+                            </View>
                         </View>
+                        <Ionicons 
+                            name="chevron-forward" 
+                            size={20} 
+                            color="#ccc" 
+                        />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botaoMetas}>
-                        <Image
-                          source={require("../assets/images/icone_sino.png")}
-                          style={styles.icone}
-                        />
-                        <View style={styles.textos}>
-                          <Text style={styles.titulo}>Notificações</Text>
-                          <Text style={styles.descricao}>minha central de Notificações</Text>
+                    {/* Botão: Notificações */}
+                    <TouchableOpacity 
+                        style={styles.botaoPill} 
+                        onPress={() => console.log("Notificações")}
+                    >
+                         <View style={styles.leftContent}>
+                            <Image
+                                source={require("../assets/images/icone_sino.png")}
+                                style={styles.iconeMenu}
+                            />
+                            <View>
+                                <Text style={styles.tituloBotao}>
+                                    Notificações
+                                </Text>
+                                <Text style={styles.descBotao}>
+                                    Minha central de Notificações
+                                </Text>
+                            </View>
                         </View>
+                        <Ionicons 
+                            name="chevron-forward" 
+                            size={20} 
+                            color="#ccc" 
+                        />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botaoLogout}>
-                        <Image
-                          source={require("../assets/images/icone_logout.png")}
-                          style={styles.icone}
-                        />
-                        <View style={styles.textos}>
-                          <Text style={styles.titulo}>Sair</Text>
-                          <Text style={styles.descricao}>fazer logout da conta</Text>
-                        </View>
+                    {/* Botão: Sair */}
+                    <TouchableOpacity 
+                        style={styles.botaoLogoutPill} 
+                        onPress={handleLogout}
+                    >
+                        <Text style={styles.textoLogout}>
+                            Sair
+                        </Text>
                     </TouchableOpacity>
+
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -70,121 +172,124 @@ export default function Perfil() {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
+  background: { 
+    flex: 1, 
+    width: "100%", 
+    height: "100%" 
   },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  container: { 
+    flex: 1 
   },
-  topo: {
-    position: "absolute",
-    top: "5%",
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: "5%",
-    backgroundColor: "#fff",
-    width: "100%",
-    height: "20%",
+  headerArea: { 
+    alignItems: 'center', 
+    paddingTop: 20, 
+    paddingBottom: 30 
   },
-  logoSuperior: {
-    width: "12%",
-    height: undefined,
-    aspectRatio: 1,
-    resizeMode: "contain",
+  closeButton: { 
+    position: 'absolute', 
+    top: 50, 
+    left: 20, 
+    padding: 5, 
+    zIndex: 10 
   },
-  perfil: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    resizeMode: "cover",
+  profileInfo: { 
+    alignItems: 'center', 
+    marginTop: 80 
   },
-  areaBotao: {
-    alignItems: "center",
-    marginBottom: "2%",
+  fotoPerfilGrande: { 
+    width: 100, 
+    height: 100, 
+    borderRadius: 50, 
+    borderWidth: 3, 
+    borderColor: '#005067', 
+    marginBottom: 10 
   },
-  botaoMetas: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffffff",
-    padding: 16,
-    borderRadius: 12,
-    width: "85%",
-    shadowColor: "#000",
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    elevation: 8,
-    marginBottom: 16,
+  editIconBadge: { 
+    position: 'absolute', 
+    bottom: 10, 
+    right: 0, 
+    backgroundColor: '#005067', 
+    borderRadius: 15, 
+    width: 30, 
+    height: 30, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderWidth: 2, 
+    borderColor: '#fff' 
   },
-  icone: {
-    width: 50,
-    height: 50,
-    marginRight: 12,
-    resizeMode: "contain",
+  nomeUsuario: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#005067' 
   },
-  textos: {
-    flex: 1,
+  areaBotoes: { 
+    flex: 1, 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    marginTop: 10 
   },
-  titulo: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#005067",
+  botaoPill: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    backgroundColor: "#FFFFFF", 
+    paddingVertical: 15, 
+    paddingHorizontal: 20, 
+    borderRadius: 30, 
+    width: "100%", 
+    shadowColor: "#000", 
+    shadowOpacity: 0.1, 
+    shadowRadius: 4, 
+    elevation: 3, 
+    marginBottom: 20, 
+    borderWidth: 1, 
+    borderColor: '#f0f0f0' 
   },
-  descricao: {
-    fontSize: 14,
-    color: "#333",
+  leftContent: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
   },
-  tabBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    paddingBottom: 10,
+  iconeMenu: { 
+    width: 28, 
+    height: 28, 
+    resizeMode: "contain", 
+    marginRight: 15 
   },
-  tabItem: {
-    alignItems: "center",
-    justifyContent: "center",
+  tituloBotao: { 
+    fontSize: 16, 
+    fontWeight: "bold", 
+    color: "#005067" 
   },
-  tabIcon: {
-    width: 32,
-    height: 32,
-    resizeMode: "contain",
+  descBotao: { 
+    fontSize: 12, 
+    color: "#888" 
   },
-  botaoLogout: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
-    backgroundColor: "#ffffffff",
-    padding: 16,
-    borderRadius: 12,
-    width: "58%",
-    shadowColor: "#000",
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    elevation: 8,
-    marginBottom: 16,
+  botaoLogoutPill: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    backgroundColor: "#FFFFFF", 
+    paddingVertical: 15, 
+    paddingHorizontal: 25, 
+    borderRadius: 30, 
+    marginTop: 10, 
+    borderWidth: 1, 
+    borderColor: '#EAEAEA', 
+    shadowColor: "#000", 
+    shadowOpacity: 0.1, 
+    shadowRadius: 4, 
+    elevation: 3 
   },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#005067",
-    textAlign: "center",
-    justifyContent: "center",
-    marginRight: "29%",
+  iconeLogout: { 
+    width: 20, 
+    height: 20, 
+    resizeMode: "contain", 
+    marginRight: 10, 
+    tintColor: '#005067' 
   },
-
+  textoLogout: { 
+    fontSize: 14, 
+    fontWeight: "bold", 
+    color: "#005067" 
+  },
 });

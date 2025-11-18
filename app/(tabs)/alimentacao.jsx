@@ -66,19 +66,6 @@ export default function Alimentacao() {
     >
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.topo}>
-          <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#005067" />
-            <Text style={styles.txtVoltar}>Voltar</Text>
-          </TouchableOpacity>
-          <Image
-            source={require("../../assets/images/logo.png")} // ⚠️ CORREÇÃO
-            style={styles.logoSuperior}
-          />
-        </View>
-      </SafeAreaView>
-
       <ScrollView style={styles.scrollContainer} contentContainerStyle={{ paddingTop: 90, paddingBottom: 100 }}>
 
         <View style={styles.treinoContainer}>

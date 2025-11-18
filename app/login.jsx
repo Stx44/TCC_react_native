@@ -1,5 +1,3 @@
-// login.jsx
-
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -15,10 +13,7 @@ import {
   View,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-
-// 🚨 IMPORT NECESSÁRIO: Importa a biblioteca Toast
 import Toast from 'react-native-toast-message'; 
-// Importa o hook para acessar o contexto de autenticação
 import { useAuth } from './AuthContext';
 
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
@@ -28,8 +23,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  
   const router = useRouter();
-  // Acessa a função 'login' do contexto
   const { login } = useAuth(); 
 
   const handleLogin = async () => {
@@ -37,7 +32,7 @@ export default function Login() {
     const emailLimpo = email.trim().toLowerCase();
     const senhaLimpa = senha.trim();
 
-    // --- Validação de campos (Usando Toast de Pílula) ---
+    // Validações
     if (!emailLimpo || !senhaLimpa) {
       Toast.show({
         type: 'pillError',
@@ -57,7 +52,6 @@ export default function Login() {
       setLoading(false);
       return;
     }
-    // --- Fim da Validação de campos ---
 
     try {
       const response = await axios.post(`${API_BASE_URL}/login`, {
@@ -66,41 +60,36 @@ export default function Login() {
       });
 
       if (response.data.sucesso) {
-        // Salva o ID do usuário no contexto global
-        login(response.data.usuario.id.toString());
+        // 🚨 ATENÇÃO: Passando o objeto completo do usuário
+        login(response.data.usuario);
         
-        // 🚨 TOAST DE SUCESSO (Pílula) 🚨
         Toast.show({
           type: 'pillSuccess',
           text1: 'Sucesso!',
-          text2: 'Usuário logado com sucesso. Redirecionando...',
+          text2: 'Bem-vindo(a) de volta!',
           topOffset: 60,
         });
         
-        // Aguarda um pouco para o usuário ver o toast antes de navegar
         setTimeout(() => {
           router.replace("/(tabs)/");
         }, 800);
 
       } else {
-        // Erro de credenciais inválidas (Resposta da API)
         Toast.show({
           type: 'pillError',
           text1: 'Erro de Login',
-          text2: 'Credenciais inválidas. Verifique seu email e senha.',
+          text2: 'Credenciais inválidas.',
           topOffset: 65,
         });
       }
     } catch (error) {
-      // Erro de rede ou servidor (Bloco catch)
       Toast.show({
         type: 'pillError',
         text1: 'Falha na Conexão',
-        text2: error.message || "Erro ao fazer login. Servidor inacessível.",
+        text2: error.message || "Erro ao fazer login.",
         topOffset: 65,
       });
     } finally {
-      // Garante que o indicador de loading pare
       setLoading(false);
     }
   };
@@ -112,9 +101,18 @@ export default function Login() {
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.topo}>
-          <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#ffffffff" />
-            <Text style={styles.txtVoltar}>Voltar</Text>
+          <TouchableOpacity 
+            style={styles.voltar} 
+            onPress={() => router.back()}
+          >
+            <Ionicons 
+              name="arrow-back" 
+              size={24} 
+              color="#ffffffff" 
+            />
+            <Text style={styles.txtVoltar}>
+              Voltar
+            </Text>
           </TouchableOpacity>
 
           <Image
@@ -149,15 +147,27 @@ export default function Login() {
             style={styles.inputNative}
           />
 
-          <TouchableOpacity style={styles.botao} onPress={handleLogin} disabled={loading}>
+          <TouchableOpacity 
+            style={styles.botao} 
+            onPress={handleLogin} 
+            disabled={loading}
+          >
             {loading ? (
               <ActivityIndicator color="#ffffffff" />
             ) : (
-              <Text style={styles.textBotao}>Entrar</Text>
+              <Text style={styles.textBotao}>
+                Entrar
+              </Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.esqueciSenha} onPress={() => router.push("/esqueciSenha")}>
-            <Text style={styles.esqTxt}>Esqueceu a senha?</Text>
+          
+          <TouchableOpacity 
+            style={styles.esqueciSenha} 
+            onPress={() => router.push("/esqueciSenha")}
+          >
+            <Text style={styles.esqTxt}>
+              Esqueceu a senha?
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -195,9 +205,6 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: "contain",
   },
-  logoContainer: {
-    alignItems: "center",
-  },
   logoCentral: {
     width: 290,
     height: 150,
@@ -210,13 +217,12 @@ const styles = StyleSheet.create({
   },
   inputNative: {
     width: "88%",
-    height: "06%",
+    height: 50,
     marginBottom: "3%",
     borderWidth: 2,
     borderColor: "white",
     borderRadius: 25,
     paddingHorizontal: "4%",
-    paddingVertical: "2%",
     color: "#ffffffff",
     backgroundColor: "transparent",
   },
@@ -238,7 +244,6 @@ const styles = StyleSheet.create({
   },
   esqueciSenha: {
     marginTop: "4%",
-    // Estilos de texto aplicados diretamente no componente Text
   },
   esqTxt: {
     color: "#ffffffff",
