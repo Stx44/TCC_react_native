@@ -223,7 +223,7 @@ export default function Exercicios() {
                                         onEndEditing={handlePesoBlur}
                                         placeholder='Peso (kg)'
                                         placeholderTextColor={"#999"}
-                                        keyboardType="numeric"
+                                        keyboardType="text"
                                     />
                                 </View>
                                 <View style={styles.infoBox}>
@@ -233,7 +233,7 @@ export default function Exercicios() {
                                         onChangeText={setAltura}
                                         placeholder='Altura (m)'
                                         placeholderTextColor={"#999"}
-                                        keyboardType="numeric"
+                                        keyboardType="text"
                                     />
                                 </View>
                             </View>
