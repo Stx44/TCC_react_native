@@ -39,7 +39,7 @@ async function cadastrar(nome, email, senha) {
   return response.data;
 }
 
-export default function Login() {
+export default function Cadastro() {
   const [oculto, setOculto] = useState(true);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -51,11 +51,14 @@ export default function Login() {
   const handleCadastro = async () => {
     setLoading(true);
     try {
-      const dados = await cadastrar(nome, email, senha);
+      await cadastrar(nome, email, senha);
       setNome("");
       setEmail("");
       setSenha("");
-      router.push("/login");
+      
+      // 🚨 ALTERADO: replace substitui a tela atual, limpando o histórico
+      router.replace("/login");
+      
     } catch (error) {
       Alert.alert("Erro", error.message || "Erro ao cadastrar.");
     } finally {

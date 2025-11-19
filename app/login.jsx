@@ -32,7 +32,6 @@ export default function Login() {
     const emailLimpo = email.trim().toLowerCase();
     const senhaLimpa = senha.trim();
 
-    // Validações
     if (!emailLimpo || !senhaLimpa) {
       Toast.show({
         type: 'pillError',
@@ -60,7 +59,6 @@ export default function Login() {
       });
 
       if (response.data.sucesso) {
-        // 🚨 ATENÇÃO: Passando o objeto completo do usuário
         login(response.data.usuario);
         
         Toast.show({
@@ -70,6 +68,7 @@ export default function Login() {
           topOffset: 60,
         });
         
+        // replace garante que a tela de login suma do histórico
         setTimeout(() => {
           router.replace("/(tabs)/");
         }, 800);

@@ -1,8 +1,19 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Tabs, router } from 'expo-router';
-import React from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { Tabs, router, useFocusEffect } from 'expo-router';
+import React, { useCallback } from 'react';
+import { 
+  Dimensions, 
+  StyleSheet, 
+  TouchableOpacity, 
+  View, 
+  Image, 
+  BackHandler 
+} from 'react-native';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring 
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../AuthContext'; 
 
@@ -59,8 +70,6 @@ const CustomTabBar = ({ state }) => {
       { bottom: insets.bottom > 0 ? insets.bottom + 5 : 20 }
     ]}>
       {TABS.map((tab, index) => {
-        // Lógica simplificada para verificar ativo
-        // Verifica se a rota atual (state.routes[state.index]) tem o mesmo nome da aba
         const isFocused = state.routes[state.index].name === tab.name;
 
         return (
@@ -111,11 +120,26 @@ const TabItem = ({ icon, isActive, onPress }) => {
 
 // --- LAYOUT PRINCIPAL ---
 export default function TabsLayout() {
+
+  // 🔒 BLOQUEIO DO BOTÃO VOLTAR (ANDROID) - CORRIGIDO
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      // ✅ CORREÇÃO: addEventListener retorna uma subscription
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      // ✅ CORREÇÃO: Usamos .remove() no retorno
+      return () => subscription.remove();
+    }, [])
+  );
+
   return (
     <Tabs
-      // 🚨 CORREÇÃO: tabBar deve ficar AQUI, fora de screenOptions
       tabBar={(props) => <CustomTabBar {...props} />}
-      
       screenOptions={{ 
         headerShown: true,
         headerTransparent: true,
@@ -127,7 +151,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="exercicios" />
 
-      {/* Telas Ocultas (href: null) */}
+      {/* Telas Ocultas */}
       <Tabs.Screen name="acompanharProgresso" options={{ href: null }} />
       <Tabs.Screen name="calendario" options={{ href: null }} />
       <Tabs.Screen name="metasSemanais" options={{ href: null }} />
@@ -135,7 +159,7 @@ export default function TabsLayout() {
   );
 }
 
-// --- ESTILOS TAB BAR (PÍLULA ORIGINAL) ---
+// --- ESTILOS ---
 const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
@@ -144,7 +168,7 @@ const styles = StyleSheet.create({
     height: TAB_HEIGHT,
     flexDirection: 'row', 
     backgroundColor: '#FFFFFF',
-    borderRadius: TAB_HEIGHT / 2, // Faz a pílula
+    borderRadius: TAB_HEIGHT / 2, 
     borderWidth: BORDER_WIDTH,
     borderColor: BORDER_COLOR,
     shadowColor: '#000',
@@ -161,7 +185,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// --- ESTILOS HEADER ---
 const headerStyles = StyleSheet.create({
   container: {
     position: 'absolute',

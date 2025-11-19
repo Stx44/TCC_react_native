@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   ImageBackground,
   SafeAreaView,
   ScrollView,
@@ -12,6 +11,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal, 
+  Alert
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Toast from 'react-native-toast-message';
@@ -34,6 +35,10 @@ export default function MinhaConta() {
   const [loadingPassword, setLoadingPassword] = useState(false);
   const [senhaOculta, setSenhaOculta] = useState(true);
 
+  // Estados para Exclusão de Conta
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
 
   // --- 1. FUNÇÃO PARA ATUALIZAR NOME E EMAIL ---
   const handleUpdateProfile = async () => {
@@ -52,7 +57,6 @@ export default function MinhaConta() {
         email: email
       });
 
-      // Atualiza o contexto (para mudar o nome/email em tempo real no app)
       login(response.data); 
 
       Toast.show({ 
@@ -63,12 +67,7 @@ export default function MinhaConta() {
 
     } catch (error) {
       const msg = error.response?.data?.erro || 'Falha ao atualizar dados.';
-      Toast.show({ 
-        type: 'pillError', 
-        text1: 'Erro', 
-        text2: msg 
-      });
-      console.error("Erro ao atualizar perfil:", error);
+      Toast.show({ type: 'pillError', text1: 'Erro', text2: msg });
     } finally {
       setLoadingProfile(false);
     }
@@ -100,30 +99,46 @@ export default function MinhaConta() {
         nova_senha: novaSenha
       });
 
-      Toast.show({ 
-        type: 'pillSuccess', 
-        text1: 'Sucesso', 
-        text2: 'Senha alterada. Faça login novamente!' 
-      });
+      Toast.show({ type: 'pillSuccess', text1: 'Sucesso', text2: 'Senha alterada. Faça login novamente!' });
       
-      // Limpa os campos após o sucesso
       setSenhaAtual('');
       setNovaSenha('');
       setConfirmarSenha('');
 
     } catch (error) {
       const msg = error.response?.data?.erro || 'Falha ao alterar senha.';
-      Toast.show({ 
-        type: 'pillError', 
-        text1: 'Erro', 
-        text2: msg 
-      });
-      console.error("Erro ao alterar senha:", error);
+      Toast.show({ type: 'pillError', text1: 'Erro', text2: msg });
     } finally {
       setLoadingPassword(false);
     }
   };
 
+  // --- 3. FUNÇÃO PARA SOLICITAR EXCLUSÃO ---
+  const handleRequestDelete = async () => {
+    setLoadingDelete(true);
+    try {
+        await axios.post(`${API_BASE_URL}/usuarios/${usuarioId}/solicitar-exclusao`, {
+            email: usuario?.email 
+        });
+
+        setModalVisible(false); // Fecha o aviso
+        
+        Alert.alert(
+            "Verifique seu E-mail",
+            "Enviamos um link de confirmação para o seu e-mail. Clique nele para concluir a exclusão definitiva da conta."
+        );
+
+    } catch (error) {
+        console.log(error);
+        Toast.show({ 
+            type: 'pillError', 
+            text1: 'Erro', 
+            text2: 'Não foi possível solicitar a exclusão.' 
+        });
+    } finally {
+        setLoadingDelete(false);
+    }
+  };
 
   return (
     <ImageBackground
@@ -136,29 +151,18 @@ export default function MinhaConta() {
             onPress={() => router.back()}
             style={styles.voltar} 
           >
-            <Ionicons 
-              name="arrow-back" 
-              size={24} 
-              color="#005067" 
-            />
-            <Text style={styles.txtVoltar}>
-              Voltar
-            </Text>
+            <Ionicons name="arrow-back" size={24} color="#005067" />
+            <Text style={styles.txtVoltar}>Voltar</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
           
-          <Text style={styles.titulo}>
-            Minha Conta
-          </Text>
+          <Text style={styles.titulo}>Minha Conta</Text>
 
           {/* --- SEÇÃO 1: NOME E EMAIL --- */}
           <View style={styles.secao}>
-            <Text style={styles.subtitulo}>
-              Informações Pessoais
-            </Text>
-
+            <Text style={styles.subtitulo}>Informações Pessoais</Text>
             <TextInput
               placeholder="Nome"
               placeholderTextColor="#888"
@@ -167,7 +171,6 @@ export default function MinhaConta() {
               autoCapitalize="words"
               style={styles.inputNative}
             />
-
             <TextInput
               placeholder="Email"
               placeholderTextColor="#888"
@@ -177,7 +180,6 @@ export default function MinhaConta() {
               autoCapitalize="none"
               style={styles.inputNative}
             />
-
             <TouchableOpacity 
               style={styles.botaoSalvar} 
               onPress={handleUpdateProfile}
@@ -186,19 +188,14 @@ export default function MinhaConta() {
               {loadingProfile ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.textBotao}>
-                  Salvar Dados
-                </Text>
+                <Text style={styles.textBotao}>Salvar Dados</Text>
               )}
             </TouchableOpacity>
           </View>
           
           {/* --- SEÇÃO 2: ALTERAR SENHA --- */}
           <View style={styles.secao}>
-            <Text style={styles.subtitulo}>
-              Alterar Senha
-            </Text>
-
+            <Text style={styles.subtitulo}>Alterar Senha</Text>
             <TextInput
               placeholder="Senha Atual"
               placeholderTextColor="#888"
@@ -207,7 +204,6 @@ export default function MinhaConta() {
               secureTextEntry={senhaOculta}
               style={styles.inputNative}
             />
-            
             <TextInput
               placeholder="Nova Senha"
               placeholderTextColor="#888"
@@ -216,7 +212,6 @@ export default function MinhaConta() {
               secureTextEntry={senhaOculta}
               style={styles.inputNative}
             />
-
             <TextInput
               placeholder="Confirmar Nova Senha"
               placeholderTextColor="#888"
@@ -225,21 +220,15 @@ export default function MinhaConta() {
               secureTextEntry={senhaOculta}
               style={styles.inputNative}
             />
-
             <TouchableOpacity 
               onPress={() => setSenhaOculta(!senhaOculta)} 
               style={styles.toggleSenha}
             >
-                <Ionicons 
-                    name={senhaOculta ? "eye-off" : "eye"} 
-                    size={20} 
-                    color="#005067" 
-                />
+                <Ionicons name={senhaOculta ? "eye-off" : "eye"} size={20} color="#005067" />
                 <Text style={styles.toggleSenhaText}>
                     {senhaOculta ? "Mostrar Senhas" : "Esconder Senhas"}
                 </Text>
             </TouchableOpacity>
-
             <TouchableOpacity 
               style={styles.botaoSalvar} 
               onPress={handleChangePassword}
@@ -248,117 +237,170 @@ export default function MinhaConta() {
               {loadingPassword ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.textBotao}>
-                  Alterar Senha
-                </Text>
+                <Text style={styles.textBotao}>Alterar Senha</Text>
               )}
             </TouchableOpacity>
           </View>
 
+          {/* --- SEÇÃO 3: EXCLUIR CONTA --- */}
+          <TouchableOpacity 
+            style={styles.botaoExcluir} 
+            onPress={() => setModalVisible(true)}
+          >
+            <Ionicons name="trash-outline" size={20} color="#FFF" />
+            <Text style={styles.textBotaoExcluir}>Excluir Conta</Text>
+          </TouchableOpacity>
+
         </ScrollView>
+
+        {/* --- MODAL DE AVISO --- */}
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <Ionicons name="warning" size={50} color="#d9534f" />
+                    <Text style={styles.modalTitle}>Atenção!</Text>
+                    
+                    <Text style={styles.modalText}>
+                        Você está prestes a iniciar o processo de exclusão da sua conta.
+                    </Text>
+                    <Text style={styles.modalText}>
+                        Para sua segurança, enviaremos um e-mail de confirmação. A conta só será excluída após você clicar no link enviado.
+                    </Text>
+                    <Text style={styles.modalTextBold}>
+                        Essa ação não poderá ser desfeita e todos os seus dados (histórico, metas, etc) serão perdidos.
+                    </Text>
+
+                    <View style={styles.modalButtons}>
+                        <TouchableOpacity 
+                            style={[styles.modalBtn, styles.modalBtnCancel]}
+                            onPress={() => setModalVisible(false)}
+                        >
+                            <Text style={styles.modalBtnTextCancel}>Cancelar</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[styles.modalBtn, styles.modalBtnConfirm]}
+                            onPress={handleRequestDelete}
+                            disabled={loadingDelete}
+                        >
+                             {loadingDelete ? (
+                                <ActivityIndicator color="#FFFFFF" size="small" />
+                              ) : (
+                                <Text style={styles.modalBtnTextConfirm}>Continuar</Text>
+                              )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+
       </SafeAreaView>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
+  background: { flex: 1, width: "100%", height: "100%" },
+  container: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40, alignItems: 'center' },
+  topo: { flexDirection: "row", justifyContent: "flex-start", alignItems: "center", paddingHorizontal: 20, paddingTop: 10, paddingBottom: 5 },
+  voltar: { flexDirection: "row", alignItems: "center" },
+  txtVoltar: { marginLeft: 6, fontSize: 18, color: "#005067", fontWeight: "bold" },
+  titulo: { fontSize: 28, fontWeight: "bold", color: "#005067", marginBottom: 20, marginTop: 10, alignSelf: 'flex-start' },
+  secao: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 20, marginBottom: 30, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 5 },
+  subtitulo: { textAlign: 'center', fontSize: 18, fontWeight: "bold", color: "#005067", marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', paddingBottom: 5 },
+  inputNative: { width: "100%", height: 50, marginBottom: 15, borderWidth: 2, borderColor: "#EAEAEA", borderRadius: 10, paddingHorizontal: 15, color: "#333", backgroundColor: "#F7F7F7", fontSize: 16 },
+  botaoSalvar: { width: "100%", backgroundColor: "#005067", paddingVertical: 12, justifyContent: "center", alignItems: "center", borderRadius: 10, marginTop: 10 },
+  textBotao: { color: "white", fontSize: 16, fontWeight: "bold" },
+  toggleSenha: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, alignSelf: 'flex-start' },
+  toggleSenhaText: { marginLeft: 8, color: '#005067', fontSize: 14 },
+  
+  // Estilos Novos para o Botão Excluir e Modal
+  botaoExcluir: {
+    flexDirection: 'row',
+    backgroundColor: '#d9534f',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    width: '100%',
   },
-  container: {
-    flex: 1,
+  textBotaoExcluir: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 10,
+    fontSize: 16,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 40,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  topo: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 5,
-  },
-  voltar: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  txtVoltar: {
-    marginLeft: 6,
-    fontSize: 18,
-    color: "#005067",
-    fontWeight: "bold",
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#005067",
-    marginBottom: 20,
-    marginTop: 10,
-    alignSelf: 'flex-start',
-  },
-  secao: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 30,
+  modalContent: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
-  subtitulo: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#005067",
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    paddingBottom: 5,
-  },
-  inputNative: {
-    width: "100%",
-    height: 50,
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: "#EAEAEA",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    color: "#333",
-    backgroundColor: "#F7F7F7",
-    fontSize: 16,
-  },
-  botaoSalvar: {
-    width: "100%",
-    backgroundColor: "#005067",
-    paddingVertical: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#d9534f',
     marginTop: 10,
-  },
-  textBotao: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  toggleSenha: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 15,
-    alignSelf: 'flex-start',
   },
-  toggleSenhaText: {
-    marginLeft: 8,
-    color: '#005067',
-    fontSize: 14,
+  modalText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  modalTextBold: {
+    fontSize: 15,
+    color: '#d9534f',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  modalBtnCancel: {
+    backgroundColor: '#ccc',
+  },
+  modalBtnConfirm: {
+    backgroundColor: '#d9534f',
+  },
+  modalBtnTextCancel: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  modalBtnTextConfirm: {
+    color: 'white',
+    fontWeight: 'bold',
   }
 });

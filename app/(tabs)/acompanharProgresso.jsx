@@ -24,20 +24,32 @@ import 'moment/locale/pt-br';
 const { width } = Dimensions.get('window');
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
+// --- CONFIGURAÇÃO DO GRÁFICO (Cor Sólida) ---
 const chartConfig = {
     backgroundColor: '#ffffff',
     backgroundGradientFrom: '#ffffff',
     backgroundGradientTo: '#ffffff',
     decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(0, 80, 103, ${opacity})`,
+    
+    // Cor base (usada em linhas/legendas)
+    color: (opacity = 1) => `rgba(0, 80, 103, 1)`,
     labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
+
+    
+    fillShadowGradient: '#005067',
+    // Força a opacidade máxima (1 = 100%)
+    fillShadowGradientOpacity: 1,
+    fillShadowGradientFrom: '#005067',
+    fillShadowGradientTo: '#005067',
+    // -----------------------------------------
+
     style: {
         borderRadius: 16,
     },
     propsForDots: {
         r: '6',
-        strokeWidth: '2',
-        stroke: '#005067',
+        strokeWidth: '1',
+        stroke: '#888888ff',
     },
     barPercentage: 0.6,
 };
@@ -51,7 +63,7 @@ export default function AcompanharProgresso() {
     const [evolucaoData, setEvolucaoData] = useState({ labels: [], datasets: [{ data: [] }] });
     const [metasData, setMetasData] = useState({ labels: [], datasets: [{ data: [] }] });
 
-    // useFocusEffect garante que os dados recarregam ao abrir a aba
+    // Garante atualização ao focar na tela
     useFocusEffect(
         useCallback(() => {
             if (usuarioId) {
@@ -68,12 +80,11 @@ export default function AcompanharProgresso() {
                 axios.get(`${API_BASE_URL}/metas/${usuarioId}`)
             ]);
 
-            // 1. Processa Ranking
+            // 1. Ranking
             setRanking(rankingResponse.data || []);
 
-            // 2. Processa Evolução de Peso
+            // 2. Evolução de Peso
             const dadosPesoBruto = evolucaoResponse.data.evolucao_peso || [];
-
             if (Array.isArray(dadosPesoBruto) && dadosPesoBruto.length > 0) {
                 const labels = dadosPesoBruto.map(item => moment(item.data_registro).format('DD/MM'));
                 const valores = dadosPesoBruto.map(item => parseFloat(item.peso));
@@ -86,11 +97,10 @@ export default function AcompanharProgresso() {
                 setEvolucaoData({ labels: [], datasets: [{ data: [] }] });
             }
 
-            // 3. Processa Metas
+            // 3. Metas
             const metasBruto = metasResponse.data.metas || [];
             if (metasBruto.length > 0) {
                 const metasOrdenadas = [...metasBruto].sort((a, b) => new Date(a.data_agendada) - new Date(b.data_agendada));
-
                 const metasPorSemana = metasOrdenadas.reduce((acc, meta) => {
                     const semanaInicio = moment(meta.data_agendada).startOf('week').format('DD/MM');
                     if (!acc[semanaInicio]) {
@@ -152,6 +162,7 @@ export default function AcompanharProgresso() {
 
                     <Text style={styles.titulo}>Acompanhar progresso</Text>
 
+                    {/* CARD RANKING */}
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Meu Ranking</Text>
                         <View style={styles.rankingContainer}>
@@ -168,6 +179,7 @@ export default function AcompanharProgresso() {
                         </View>
                     </View>
 
+                    {/* CARD PESO - Com flatColor={true} */}
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Evolução Peso (kg)</Text>
                         {evolucaoData && evolucaoData.labels && evolucaoData.labels.length > 0 ? (
@@ -181,6 +193,7 @@ export default function AcompanharProgresso() {
                                 verticalLabelRotation={30}
                                 fromZero
                                 showValuesOnTopOfBars
+                                flatColor={true} // <--- O SEGREDO ESTÁ AQUI
                             />
                         ) : (
                             <Text style={styles.noDataText}>
@@ -190,6 +203,7 @@ export default function AcompanharProgresso() {
                         )}
                     </View>
 
+                    {/* CARD METAS - Com flatColor={true} */}
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Metas Concluídas por Semana</Text>
                         {metasData && metasData.labels && metasData.labels.length > 0 ? (
@@ -201,6 +215,7 @@ export default function AcompanharProgresso() {
                                 chartConfig={chartConfig}
                                 verticalLabelRotation={30}
                                 fromZero
+                                flatColor={true} // <--- O SEGREDO ESTÁ AQUI
                             />
                         ) : <Text style={styles.noDataText}>Nenhum dado de metas.</Text>}
                     </View>
