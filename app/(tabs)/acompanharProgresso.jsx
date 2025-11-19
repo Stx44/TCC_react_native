@@ -1,23 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback } from 'react';
 import {
-  Alert,
-  Dimensions,
-  Image,
-  ImageBackground,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator
+    Alert,
+    Dimensions,
+    Image,
+    ImageBackground,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ActivityIndicator
 } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
 import { BarChart } from 'react-native-chart-kit';
-import { useAuth } from '../AuthContext'; // ⚠️ CORREÇÃO (assumindo que está em app/AuthContext.js)
+import { useAuth } from '../AuthContext';
 import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/pt-br';
@@ -26,164 +25,192 @@ const { width } = Dimensions.get('window');
 const API_BASE_URL = "https://api-neon-2kpd.onrender.com";
 
 const chartConfig = {
-  backgroundColor: '#ffffff',
-  backgroundGradientFrom: '#ffffff',
-  backgroundGradientTo: '#ffffff',
-  decimalPlaces: 0,
-  color: () => `rgba(0, 80, 103, 1)`, 
-  labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
-  style: {
-    borderRadius: 16,
-  },
-  propsForDots: {
-    r: '6',
-    strokeWidth: '2',
-    stroke: '#005067',
-  },
-  propsForBackgroundLines: {
-    stroke: '#e5e5e5',
-    strokeWidth: 1,
-  },
-  barPercentage: 0.8,
-  barRadius: 8,
+    backgroundColor: '#ffffff',
+    backgroundGradientFrom: '#ffffff',
+    backgroundGradientTo: '#ffffff',
+    decimalPlaces: 1,
+    color: (opacity = 1) => `rgba(0, 80, 103, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
+    style: {
+        borderRadius: 16,
+    },
+    propsForDots: {
+        r: '6',
+        strokeWidth: '2',
+        stroke: '#005067',
+    },
+    barPercentage: 0.6,
 };
 
 export default function AcompanharProgresso() {
-  const { usuarioId } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [ranking, setRanking] = useState([]);
-  const [evolucaoData, setEvolucaoData] = useState({ labels: [], datasets: [{ data: [] }] });
-  const [metasData, setMetasData] = useState({ labels: [], datasets: [{ data: [] }] });
+    const { usuarioId } = useAuth();
+    const [loading, setLoading] = useState(true);
+    const [ranking, setRanking] = useState([]);
 
-  useEffect(() => {
-    if (usuarioId) {
-      buscarDadosDoDashboard();
-    }
-  }, [usuarioId]);
+    // Inicializa estados com estrutura segura
+    const [evolucaoData, setEvolucaoData] = useState({ labels: [], datasets: [{ data: [] }] });
+    const [metasData, setMetasData] = useState({ labels: [], datasets: [{ data: [] }] });
 
-  const buscarDadosDoDashboard = async () => {
-    try {
-      setLoading(true);
-      const [rankingResponse, evolucaoResponse, metasResponse] = await Promise.all([
-        axios.get(`${API_BASE_URL}/dashboard/ranking`),
-        axios.get(`${API_BASE_URL}/dashboard/evolucao-peso/${usuarioId}`),
-        axios.get(`${API_BASE_URL}/metas/${usuarioId}`)
-      ]);
-      
-      setRanking(rankingResponse.data || []);
-      setEvolucaoData(evolucaoResponse.data.evolucao_peso || { labels: [], datasets: [{ data: [] }] });
-
-      const metasBruto = metasResponse.data.metas || [];
-      if (metasBruto.length > 0) {
-        const metasOrdenadas = [...metasBruto].sort((a, b) => new Date(a.data_agendada) - new Date(b.data_agendada));
-        const metasPorSemana = metasOrdenadas.reduce((acc, meta) => {
-          const semanaInicio = moment(meta.data_agendada).startOf('week').format('DD/MM');
-          if (!acc[semanaInicio]) {
-            acc[semanaInicio] = { total: 0, concluidas: 0 };
-          }
-          acc[semanaInicio].total += 1;
-          if (meta.concluido) {
-            acc[semanaInicio].concluidas += 1;
-          }
-          return acc;
-        }, {});
-
-        setMetasData({
-            labels: Object.keys(metasPorSemana),
-            datasets: [{
-              data: Object.values(metasPorSemana).map(semana => semana.concluidas)
-            }]
-        });
-      }
-
-    } catch (error) {
-      console.error("Erro ao buscar dados do dashboard:", error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível buscar dados do dashboard.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#005067" />
-        <Text style={styles.loadingText}>Carregando...</Text>
-      </View>
+    // useFocusEffect garante que os dados recarregam ao abrir a aba
+    useFocusEffect(
+        useCallback(() => {
+            if (usuarioId) {
+                buscarDadosDoDashboard();
+            }
+        }, [usuarioId])
     );
-  }
 
-  return (
-    <ImageBackground
-      source={require("../../assets/images/paredebranca.png")} // ⚠️ CORREÇÃO
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContentContainer} showsVerticalScrollIndicator={false}>
-          <View style={styles.topo}>
-            <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#005067" />
-              <Text style={styles.txtVoltar}>Voltar</Text>
-            </TouchableOpacity>
-            <Image
-              source={require("../../assets/images/logo.png")} // ⚠️ CORREÇÃO
-              style={styles.logoSuperior}
-            />
-          </View>
-          <Text style={styles.titulo}>Acompanhar progresso</Text>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Meu Ranking</Text>
-            <View style={styles.rankingContainer}>
-              {Array.isArray(ranking) && ranking.length > 0 ? (
-                ranking.map((item, index) => (
-                  <View key={index} style={styles.rankingItem}>
-                    <Text style={styles.rankingPosition}>{index + 1}.</Text>
-                    <Image source={require("../../assets/images/perfil_teal.png")} style={styles.rankingImage}/> // ⚠️ CORREÇÃO
-                    <Text style={styles.rankingName}>{item.nome}</Text>
-                    <Text style={styles.rankingPoints}>{item.pontos} Pts</Text>
-                  </View>
-                ))
-              ) : <Text style={styles.noDataText}>Nenhum dado de ranking.</Text>}
+    const buscarDadosDoDashboard = async () => {
+        try {
+            const [rankingResponse, evolucaoResponse, metasResponse] = await Promise.all([
+                axios.get(`${API_BASE_URL}/dashboard/ranking`),
+                axios.get(`${API_BASE_URL}/dashboard/evolucao-peso/${usuarioId}`),
+                axios.get(`${API_BASE_URL}/metas/${usuarioId}`)
+            ]);
+
+            // 1. Processa Ranking
+            setRanking(rankingResponse.data || []);
+
+            // 2. Processa Evolução de Peso
+            const dadosPesoBruto = evolucaoResponse.data.evolucao_peso || [];
+
+            if (Array.isArray(dadosPesoBruto) && dadosPesoBruto.length > 0) {
+                const labels = dadosPesoBruto.map(item => moment(item.data_registro).format('DD/MM'));
+                const valores = dadosPesoBruto.map(item => parseFloat(item.peso));
+
+                setEvolucaoData({
+                    labels: labels,
+                    datasets: [{ data: valores }]
+                });
+            } else {
+                setEvolucaoData({ labels: [], datasets: [{ data: [] }] });
+            }
+
+            // 3. Processa Metas
+            const metasBruto = metasResponse.data.metas || [];
+            if (metasBruto.length > 0) {
+                const metasOrdenadas = [...metasBruto].sort((a, b) => new Date(a.data_agendada) - new Date(b.data_agendada));
+
+                const metasPorSemana = metasOrdenadas.reduce((acc, meta) => {
+                    const semanaInicio = moment(meta.data_agendada).startOf('week').format('DD/MM');
+                    if (!acc[semanaInicio]) {
+                        acc[semanaInicio] = { total: 0, concluidas: 0 };
+                    }
+                    acc[semanaInicio].total += 1;
+                    if (meta.concluido) {
+                        acc[semanaInicio].concluidas += 1;
+                    }
+                    return acc;
+                }, {});
+
+                setMetasData({
+                    labels: Object.keys(metasPorSemana),
+                    datasets: [{
+                        data: Object.values(metasPorSemana).map(semana => semana.concluidas)
+                    }]
+                });
+            } else {
+                setMetasData({ labels: [], datasets: [{ data: [] }] });
+            }
+
+        } catch (error) {
+            console.error("Erro ao buscar dashboard:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#005067" />
+                <Text style={styles.loadingText}>Carregando...</Text>
             </View>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Evolução Peso/IMC</Text>
-            {evolucaoData.labels.length > 0 ? (
-              <BarChart
-                data={evolucaoData}
-                width={width * 0.75}
-                height={220}
-                yAxisLabel=""
-                yAxisSuffix="kg"
-                chartConfig={chartConfig}
-                verticalLabelRotation={30}
-                fromZero
-              />
-            ) : <Text style={styles.noDataText}>Nenhum dado de peso.</Text>}
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Evolução Metas Concluídas</Text>
-              {metasData.labels.length > 0 ? (
-              <BarChart
-                data={metasData}
-                width={width * 0.75}
-                height={220}
-                yAxisLabel=""
-                chartConfig={chartConfig}
-                verticalLabelRotation={30}
-                fromZero
-              />
-            ) : <Text style={styles.noDataText}>Nenhum dado de metas.</Text>}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
-  );
+        );
+    }
+
+    return (
+        <ImageBackground
+            source={require("../../assets/images/paredebranca.png")}
+            style={styles.background}
+            resizeMode="cover"
+        >
+            <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+            <SafeAreaView style={{ flex: 1 }}>
+                <ScrollView contentContainerStyle={styles.scrollContentContainer} showsVerticalScrollIndicator={false}>
+
+                    <View style={styles.topo}>
+                        <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
+                            <Ionicons name="arrow-back" size={24} color="#005067" />
+                            <Text style={styles.txtVoltar}>Voltar</Text>
+                        </TouchableOpacity>
+                        <Image
+                            source={require("../../assets/images/logo.png")}
+                            style={styles.logoSuperior}
+                        />
+                    </View>
+
+                    <Text style={styles.titulo}>Acompanhar progresso</Text>
+
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Meu Ranking</Text>
+                        <View style={styles.rankingContainer}>
+                            {Array.isArray(ranking) && ranking.length > 0 ? (
+                                ranking.map((item, index) => (
+                                    <View key={index} style={styles.rankingItem}>
+                                        <Text style={styles.rankingPosition}>{index + 1}.</Text>
+                                        <Image source={require("../../assets/images/perfil_teal.png")} style={styles.rankingImage} />
+                                        <Text style={styles.rankingName}>{item.nome}</Text>
+                                        <Text style={styles.rankingPoints}>{item.pontos} Pts</Text>
+                                    </View>
+                                ))
+                            ) : <Text style={styles.noDataText}>Nenhum dado de ranking.</Text>}
+                        </View>
+                    </View>
+
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Evolução Peso (kg)</Text>
+                        {evolucaoData && evolucaoData.labels && evolucaoData.labels.length > 0 ? (
+                            <BarChart
+                                data={evolucaoData}
+                                width={width * 0.82}
+                                height={220}
+                                yAxisLabel=""
+                                yAxisSuffix="kg"
+                                chartConfig={chartConfig}
+                                verticalLabelRotation={30}
+                                fromZero
+                                showValuesOnTopOfBars
+                            />
+                        ) : (
+                            <Text style={styles.noDataText}>
+                                Nenhum registro de peso.{'\n'}
+                                Registre seu peso na tela de Exercícios.
+                            </Text>
+                        )}
+                    </View>
+
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Metas Concluídas por Semana</Text>
+                        {metasData && metasData.labels && metasData.labels.length > 0 ? (
+                            <BarChart
+                                data={metasData}
+                                width={width * 0.82}
+                                height={220}
+                                yAxisLabel=""
+                                chartConfig={chartConfig}
+                                verticalLabelRotation={30}
+                                fromZero
+                            />
+                        ) : <Text style={styles.noDataText}>Nenhum dado de metas.</Text>}
+                    </View>
+
+                </ScrollView>
+            </SafeAreaView>
+        </ImageBackground>
+    );
 }
 
-// ... (seus estilos continuam aqui sem alteração)
 const styles = StyleSheet.create({
     background: {
         flex: 1,
@@ -232,7 +259,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
@@ -294,29 +324,5 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#005067',
         marginTop: 10,
-    },
-    tabBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: width * 0.18,
-        backgroundColor: '#fff',
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: '#ccc',
-        paddingBottom: width * 0.02,
-        zIndex: 20,
-    },
-    tabItem: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    tabIcon: {
-        width: width * 0.08,
-        height: width * 0.08,
-        resizeMode: 'contain',
     },
 });

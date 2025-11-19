@@ -100,7 +100,7 @@ export default function Perfil() {
                     </View>
                 </View>
 
-                {/* --- MENU --- */}
+                {/* --- MENU --- */}\\
                 <View style={styles.areaBotoes}>
                     
                     {/* Botão: Dados da Conta */}
