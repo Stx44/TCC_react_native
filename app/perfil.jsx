@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from './AuthContext';
+import Notic from './Notic';
 
 const { width } = Dimensions.get('window');
 
@@ -132,7 +133,7 @@ export default function Perfil() {
                     {/* Botão: Notificações */}
                     <TouchableOpacity 
                         style={styles.botaoPill} 
-                        onPress={() => console.log("Notificações")}
+                        onPress={() => router.push("/Notic")}
                     >
                          <View style={styles.leftContent}>
                             <Image

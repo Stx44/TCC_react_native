@@ -12,6 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal // 1. Importei o Modal
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -45,6 +46,9 @@ export default function Cadastro() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // 2. Estado para controlar o Modal de Aviso
+  const [modalVisible, setModalVisible] = useState(false);
 
   const router = useRouter();
 
@@ -52,18 +56,26 @@ export default function Cadastro() {
     setLoading(true);
     try {
       await cadastrar(nome, email, senha);
+      
+      // Limpa os campos
       setNome("");
       setEmail("");
       setSenha("");
       
-      // 🚨 ALTERADO: replace substitui a tela atual, limpando o histórico
-      router.replace("/login");
+      // 3. Em vez de ir direto, mostra o Modal de aviso
+      setModalVisible(true);
       
     } catch (error) {
       Alert.alert("Erro", error.message || "Erro ao cadastrar.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Função para fechar o modal e ir para o login
+  const fecharModalEIrParaLogin = () => {
+    setModalVisible(false);
+    router.replace("/login");
   };
 
   return (
@@ -127,6 +139,43 @@ export default function Cadastro() {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* --- 4. MODAL DE VERIFICAÇÃO DE EMAIL --- */}
+        <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={fecharModalEIrParaLogin}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    {/* Ícone de Carta/Email */}
+                    <Ionicons name="mail-unread" size={50} color="#005067" />
+                    
+                    <Text style={styles.modalTitle}>Quase lá!</Text>
+                    
+                    <Text style={styles.modalText}>
+                        Sua conta foi criada com sucesso.
+                    </Text>
+                    
+                    <Text style={styles.modalText}>
+                        Para sua segurança, enviamos um link de confirmação para o e-mail cadastrado.
+                    </Text>
+
+                    <Text style={styles.modalTextBold}>
+                        Você precisa confirmar seu e-mail antes de fazer login.
+                    </Text>
+
+                    <TouchableOpacity 
+                        style={styles.modalBtnConfirm}
+                        onPress={fecharModalEIrParaLogin}
+                    >
+                        <Text style={styles.modalBtnTextConfirm}>Entendi, ir para Login</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+
       </SafeAreaView>
     </ImageBackground>
   );
@@ -203,4 +252,59 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+
+  // --- ESTILOS DO MODAL (Copiados e adaptados de MinhaConta) ---
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)', // Fundo escurecido
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#005067', // Cor do tema
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+    lineHeight: 22,
+  },
+  modalTextBold: {
+    fontSize: 15,
+    color: '#d9534f', // Mantive vermelho para chamar atenção ao aviso importante
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  modalBtnConfirm: {
+    backgroundColor: '#005067', // Botão com a cor do tema
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalBtnTextConfirm: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  }
 });
